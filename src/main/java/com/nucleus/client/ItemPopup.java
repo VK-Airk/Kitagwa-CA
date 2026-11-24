@@ -1,271 +1,56 @@
 package com.nucleus.client;
 
-import com.mojang.blaze3d.ProjectionType;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Projection;
-import net.minecraft.client.renderer.ProjectionMatrixBuffer;
-
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
-import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
-import com.nucleus.NucleusMod;
+/** Renders the spinning reward in Minecraft's GUI pass alongside the vault and captions. */
+final class ItemPopup {
+    private final ItemEntityRenderState model = new ItemEntityRenderState();
+    private final Vector3f pivot;
+    private final float extent;
+    private final float yaw;
+    private final float peak;
+    private final long started;
+    private final long duration;
 
-/**
- * Totem-style 3D item popup drawn above everything, HUD included.
- *
- * <p>This is vanilla's item-activation animation
- * ({@code ScreenEffectRenderer} runs the same polynomial curve over a
- * hardcoded 40 ticks) with the tick count as a parameter — stretching the
- * ticks is what slows the animation down, which vanilla's fixed pop cannot
- * do. The jackpot's variant adds its own flavor: a fast-start warp (the
- * dull opening plays quicker, full motion by mid-show), a pulled-back
- * zoom, and a triple-spin with a shallower tilt instead of the usual
- * double-spin. The render hook runs after the GUI pass, so the item lands
- * in front of all HUD text.
- */
-public final class ItemPopup {
-	private ItemPopup() {
-	}
-
-	private static final RandomSource RANDOM = RandomSource.create();
-
-	private static ItemStack stack;
-	private static int totalTicks;
-	private static int ticksLeft;
-	private static boolean altCurve;
-	private static boolean angled;
-	private static boolean fastStart;
-	private static float yawOffset;
-	private static float offX;
-	private static float offY;
-	private static boolean mirrorHalf;
-    private static boolean fromTrialHatch;
-    private static final org.joml.Matrix4f hatchProjection=new org.joml.Matrix4f();
-	/**
-	 * Optional live lighting for the pop: returns {packed light, packed
-	 * overlay} each frame (null = full bright, no overlay, like vanilla).
-	 */
-	public static volatile java.util.function.Supplier<int[]> lighting = null;
-	/** Fraction of the play where the pop peaks (0 = vanilla timing). */
-	private static float peakAt;
-	/** Longest popup (20s): the jackpot roll-up can run past 10s on billion-coin drops. */
-	public static final int MAX_TICKS = 400;
-
-	/**
-	 * Starts the popup. {@code ticks} is the full play length in game ticks
-	 * (20 = 1s): larger values play the same motion slower, matching the
-	 * screen time it accompanies. {@code fastStart} warps the opening so
-	 * the slow part of the curve clears quicker and full motion arrives by
-	 * mid-show. {@code yawOffsetDegrees} is a static base turn applied
-	 * under the animated spin — for faces that live on the side of a head
-	 * (the spin dwells readable longest at sweep ends, so an offset parks
-	 * that dwell on the side face). Replaces any popup currently playing.
-	 */
-	public static void popup(ItemStack s, int ticks, boolean altRotationCurve, boolean angledPose,
-		boolean fastStartWarp, float yawOffsetDegrees) {
-		popup(s, ticks, altRotationCurve, angledPose, fastStartWarp, yawOffsetDegrees, 0f);
-	}
-
-	/**
-	 * Same, but the pop's peak (the middle of vanilla's curve, where the
-	 * item is closest and biggest) lands at {@code peakFraction} of the
-	 * play instead of halfway: the time before and after it stretch to fit.
-	 */
-	public static void popup(ItemStack s, int ticks, boolean altRotationCurve, boolean angledPose,
-		boolean fastStartWarp, float yawOffsetDegrees, float peakFraction) {
-        popup(s,ticks,altRotationCurve,angledPose,fastStartWarp,yawOffsetDegrees,peakFraction,false);
+    ItemPopup(ItemStack stack, float yaw, float peak, long started, long duration) {
+        var client = Minecraft.getInstance();
+        model.entityType = EntityTypes.ITEM;
+        model.count = 1;
+        model.lightCoords = 0xF000F0;
+        client.getItemModelResolver().updateForTopItem(model.item, stack, ItemDisplayContext.FIXED, client.level, null, 0);
+        if (model.item.isEmpty()) throw new IllegalArgumentException("Empty reward model for " + stack);
+        var box = model.item.getModelBoundingBox();
+        var center = box.getCenter();
+        // Undo the dropped-item renderer's lift and center the model on the spin axis.
+        pivot = new Vector3f((float)-center.x, (float)(box.minY - center.y - .1625), (float)-center.z);
+        extent = (float)Math.max(.25, Math.max(box.getXsize(), Math.max(box.getYsize(), box.getZsize())));
+        this.yaw = yaw;
+        this.peak = peak;
+        this.started = started;
+        this.duration = duration;
     }
 
-    static void popup(ItemStack s,int ticks,boolean altRotationCurve,boolean angledPose,
-                      boolean fastStartWarp,float yawOffsetDegrees,float peakFraction,boolean trialHatch){
-        fromTrialHatch=trialHatch;
-		peakAt = peakFraction > 0.05f && peakFraction < 0.95f ? peakFraction : 0f;
-		if (s == null || s.isEmpty()) {
-			return;
-		}
-		try {
-			totalTicks = Mth.clamp(ticks, 1, MAX_TICKS);
-			ticksLeft = totalTicks;
-			stack = s.copy();
-			altCurve = altRotationCurve;
-			angled = angledPose;
-			fastStart = fastStartWarp;
-			yawOffset = yawOffsetDegrees;
-			offX = RANDOM.nextFloat() * 2f - 1f;
-			offY = RANDOM.nextFloat() * 2f - 1f;
-			mirrorHalf = RANDOM.nextBoolean();
-		} catch (Exception e) {
-			NucleusMod.LOGGER.warn("Item popup failed: {}", e.toString());
-			stack = null;
-			ticksLeft = 0;
-		}
-	}
-
-	public static void tick() {
-		if (ticksLeft > 0) {
-			ticksLeft--;
-			if (ticksLeft == 0) {
-				stack = null;
-			}
-		}
-	}
-
-	public static void clear() {
-		stack = null;
-		ticksLeft = 0;
-	}
-
-	public static boolean playing() {
-		return ticksLeft > 0 && stack != null;
-	}
-
-	/** Called from the GameRenderer hook after the GUI pass. Zero cost idle. */
-	public static void render(ProjectionMatrixBuffer hud3dProjectionMatrixBuffer, Projection hudProjection,
-		SubmitNodeStorage submitNodeStorage, DeltaTracker deltaTracker,
-		FeatureRenderDispatcher featureRenderDispatcher) {
-		ItemStack s = stack;
-		int left = ticksLeft;
-		int total = totalTicks;
-		if (s == null || left <= 0 || total <= 0) {
-			return;
-		}
-		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft == null) {
-			return;
-		}
-		GpuTexture depthTexture;
-		try {
-			depthTexture = minecraft.gameRenderer.mainRenderTarget().getDepthTexture();
-		} catch (Exception ignored) {
-			return;
-		}
-		if (depthTexture == null) {
-			return;
-		}
-		try {
-			RenderSystem.setProjectionMatrix(hud3dProjectionMatrixBuffer.getBuffer(hudProjection),
-				ProjectionType.PERSPECTIVE);
-			RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(depthTexture, 1D);
-			renderItem(minecraft, hudProjection, s, total - left, total, submitNodeStorage,
-				deltaTracker.getGameTimeDeltaPartialTick(true));
-			featureRenderDispatcher.renderAllFeatures(submitNodeStorage);
-			
-		} catch (Exception e) {
-			NucleusMod.LOGGER.warn("Item popup render failed: {}", e.toString());
-			stack = null;
-			ticksLeft = 0;
-		}
-	}
-
-	private static void renderItem(Minecraft minecraft, Projection projection, ItemStack s, int elapsedTicks, int total,
-		SubmitNodeCollector collector, float partialTicks) {
-		PoseStack poseStack = new PoseStack();
-		float progress = (elapsedTicks + partialTicks) / total;
-		if (peakAt > 0f) {
-			float pr = Mth.clamp(progress, 0f, 1f);
-			progress = pr < peakAt ? 0.5f * pr / peakAt : 0.5f + 0.5f * (pr - peakAt) / (1f - peakAt);
-		}
-		if (fastStart) {
-			// Hurry the dull opening: mid-motion arrives ~a quarter early,
-			// the tail eases out a touch longer instead.
-			progress = (float) Math.pow(Mth.clamp(progress, 0f, 1f), 0.7D);
-		}
-		float progressSquared = progress * progress;
-		float progressCubed = progress * progressSquared;
-		float animationCurve = 10.25f * progressCubed * progressSquared - 24.95f * progressSquared * progressSquared
-			+ 25.5f * progressCubed - 13.8f * progressSquared + 4f * progress;
-		float halfRotations = animationCurve * (float) Math.PI;
-		float aspectRatio = (float) minecraft.getWindow().getWidth() / (float) minecraft.getWindow().getHeight();
-		float offsetX = offX * 0.3f * aspectRatio;
-		float offsetY = offY * 0.3f;
-		if (mirrorHalf) {
-			if (progress > 0.5f) {
-				offsetX = -offsetX;
-				offsetY = -offsetY;
-			}
-			// Vanilla's curve doesn't pass exactly through (0.5, 0.5), so
-			// ease the offsets to 0 mid-animation to hide the mirror snap.
-			if (progress > 0.3f && progress < 0.7f) {
-				float multiplier = -Mth.cos(5 * (float) Math.PI * (progress - 0.5f)) * 0.5f + 0.5f;
-				offsetX *= multiplier;
-				offsetY *= multiplier;
-			}
-		}
-        float dx=offsetX*Mth.abs(Mth.sin(halfRotations*2f));
-        float dy=offsetY*Mth.abs(Mth.sin(halfRotations*2f));
-        float z=-10f+9f*Mth.sin(halfRotations);
-        float scale=.65f;
-        float spinBlend=1;
-        if(fromTrialHatch){
-            boolean eject=JackpotAnimation.stage()==JackpotAnimation.Stage.VAULT_EJECT;
-            float blend=eject?0:Math.clamp((float)JackpotAnimation.rollupTimeNow()/740f,0f,1f);
-            blend=blend*blend*(3-2*blend);
-            spinBlend=blend;
-            if(blend<1){
-                float t=eject?VaultHud.finalFlight(JackpotAnimation.stageProgress(JackpotAnimation.Stage.VAULT_EJECT)):1;
-                int w=minecraft.getWindow().getGuiScaledWidth(),h=minecraft.getWindow().getGuiScaledHeight();
-                float unit=VaultHud.scale(w,h);
-                float hatchY=h*.61f-77.5f*unit;
-                float px=w*.5f+(9+10*t)*unit;
-                float py=hatchY-Math.min(hatchY*.80f,32*unit)*(2.35f*t-1.60f*t*t);
-                // Convert the lid's GUI position to the popup camera at the item's current depth.
-                var matrix=projection.getMatrix(hatchProjection);
-                dx=Mth.lerp(blend,(2*px/w-1)*(-z)/matrix.m00(),dx);
-                dy=Mth.lerp(blend,(1-2*py/h)*(-z)/matrix.m11(),dy);
-                // Keep the spinning item inside the available headroom even as the popup camera zooms.
-                float screenSize=Math.min(h*.12f,Math.max(1,py*1.2f))*(.45f+.55f*t)*Math.min(1,t*7);
-                float hatchScale=screenSize*2*(-z)/(h*Math.abs(matrix.m11()));
-                scale=Mth.lerp(blend,hatchScale,scale);
-            }
-        }
-        poseStack.translate(dx,dy,z);
-		// Shrink to exactly 0 over the final stretch so the pop ends as
-		// a point instead of blinking out while still ~10% visible.
-		float endT = Mth.clamp((1f - progress) / 0.15f, 0f, 1f);
-		scale *= endT * endT;
-		poseStack.scale(scale, scale, scale);
-		if (yawOffset != 0f) {
-			poseStack.mulPose(Axis.YP.rotationDegrees(yawOffset));
-		}
-		if (angled) {
-			poseStack.mulPose(Axis.XP.rotationDegrees(20f));
-			poseStack.mulPose(Axis.YP.rotationDegrees(30f));
-		}
-		poseStack.mulPose(Axis.YP.rotationDegrees(1080f * spinBlend * (altCurve
-			? (float) Math.pow(Mth.sin(progress * (float) Math.PI), 0.5D)
-			: Mth.abs(Mth.sin(halfRotations)))));
-		poseStack.mulPose(Axis.XP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-		poseStack.mulPose(Axis.ZP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-		minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
-		ItemStackRenderState state = new ItemStackRenderState();
-		minecraft.getItemModelResolver().updateForTopItem(state, s, ItemDisplayContext.FIXED, minecraft.level, null, 0);
-		int light = 15728880;
-		int overlay = OverlayTexture.NO_OVERLAY;
-		java.util.function.Supplier<int[]> lit = lighting;
-		if (lit != null) {
-			try {
-				int[] l = lit.get();
-				if (l != null && l.length >= 2) {
-					light = l[0];
-					overlay = l[1];
-				}
-			} catch (Exception ignored) {
-			}
-		}
-		state.submit(poseStack, collector, light, overlay, 0);
-	}
+    void draw(GuiGraphicsExtractor gfx, float x, float y, float size, int radius, float spinBlend, long now) {
+        float t = Math.clamp((now - started) / (float)duration, 0f, 1f);
+        float p = t < peak ? .5f * t / peak : .5f + .5f * (t - peak) / (1f - peak);
+        float curve = p * (4f + p * (-13.8f + p * (25.5f + p * (-24.95f + 10.25f * p))));
+        float swing = Math.abs(Mth.sin(Math.PI * curve));
+        float tilt = 6f * Mth.cos(8f * p);
+        float radians = (float)(Math.PI / 180);
+        var rotation = new Quaternionf().rotationX((float)Math.PI).rotateX(20f * radians)
+            .rotateY((yaw + 30f + 1080f * spinBlend * swing) * radians)
+            .rotateX(tilt * radians).rotateZ(tilt * radians);
+        float scale = .94f * size / extent * (1f - .45f * spinBlend * (1f - swing));
+        int cx = Math.round(x), cy = Math.round(y);
+        gfx.entity(model, scale, rotation.transform(new Vector3f(pivot)), rotation, null,
+            cx - radius, cy - radius, cx + radius, cy + radius);
+    }
 }

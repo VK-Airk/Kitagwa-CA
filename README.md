@@ -2,10 +2,10 @@
 
 KCA is a client-side Fabric mod for Hypixel SkyBlock. Download the JAR that matches your Minecraft version.
 
-| Minecraft | KCA 1.13.9 |
+| Minecraft | KCA 1.13.10 |
 | --- | --- |
-| 26.1.2 | [Download for Minecraft 26.1.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.9/KCA-1.13.9-mc26.1.2.jar) |
-| 26.2 | [Download for Minecraft 26.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.9/KCA-1.13.9-mc26.2.jar) |
+| 26.1.2 | [Download for Minecraft 26.1.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.10/KCA-1.13.10-mc26.1.2.jar) |
+| 26.2 | [Download for Minecraft 26.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.10/KCA-1.13.10-mc26.2.jar) |
 
 Close Minecraft, replace your previous KCA JAR in your Fabric profile’s mods folder, and restart. Use Fabric API for the same Minecraft version.
 

@@ -129,7 +129,7 @@ public final class JackpotHud implements HudElement {
         }
         if(stage==Stage.VAULT_EJECT){
             VaultHud.eject(gfx,w,h,JackpotAnimation.stageProgress(stage));
-            JackpotAnimation.drawRewardSprite(gfx, w, h, true);
+            JackpotAnimation.drawReward(gfx, w, h, true);
             return;
         }
         if (stage == Stage.WHEEL) {
@@ -143,7 +143,7 @@ public final class JackpotHud implements HudElement {
 		}
 
 		drawMaxWin(gfx, client, w, h, cx, now);
-        JackpotAnimation.drawRewardSprite(gfx, w, h, false);
+        JackpotAnimation.drawReward(gfx, w, h, false);
 	}
 
 	/**

@@ -149,25 +149,22 @@ public final class JackpotAnimation {
 		return alloyStack;
 	}
 
-	private static synchronized ItemStack clawStack() {
-		if (clawStack == null) {
-			// NEU PET_ITEM_QUICK_CLAW, skull, no slim metadata on its skin.
-			clawStack = DyeCelebration.head(
-				"6312a5a12ecb24d6852db388e6a34721cc67f522ccde7e824b9f75e95036ac93",
-				"490f6025-7f41-322a-9c7a-9d1cf91ee0ae", "§6Quick Claw", false);
-		}
-		return clawStack;
-	}
+    private static ItemStack rewardHead(String model, String name) {
+        var stack = new ItemStack(Items.PLAYER_HEAD);
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+        stack.set(DataComponents.ITEM_MODEL, net.minecraft.resources.Identifier.fromNamespaceAndPath("kca", "reward/" + model));
+        return stack;
+    }
 
-	private static synchronized ItemStack jadeStack() {
-		if (jadeStack == null) {
-			// NEU DYE_JADE, skull with slim skin metadata.
-			jadeStack = DyeCelebration.head(
-				"8b215ff671f111e98d17a473fda8e5e9d0425ccd6e79426654ccb55f3f0cc652",
-				"166f868f-8eee-3af1-8a93-9b94b06ec041", "§2Jade Dye", true);
-		}
-		return jadeStack;
-	}
+    private static synchronized ItemStack clawStack() {
+        if (clawStack == null) clawStack = rewardHead("quick_claw", "§6Quick Claw");
+        return clawStack;
+    }
+
+    private static synchronized ItemStack jadeStack() {
+        if (jadeStack == null) jadeStack = rewardHead("jade_dye", "§2Jade Dye");
+        return jadeStack;
+    }
 
 	private static synchronized ItemStack jaderaldStack() {
 		if (jaderaldStack == null) {
@@ -471,10 +468,13 @@ public final class JackpotAnimation {
 	private static boolean rewardShown;
     private static net.minecraft.resources.Identifier rewardSprite;
     private static boolean rewardFromHatch;
+    private static ItemPopup rewardModel;
 
-    static void drawRewardSprite(net.minecraft.client.gui.GuiGraphicsExtractor gfx, int width, int height, boolean ejecting) {
+    static void drawReward(net.minecraft.client.gui.GuiGraphicsExtractor gfx, int width, int height, boolean ejecting) {
         if (!rewardShown || rewardSprite == null) return;
-        long elapsed = maxwinElapsedMs(System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+        long elapsed = maxwinElapsedMs(now);
+        float spinBlend = 1f;
         float enter = Math.clamp(elapsed / 320f, 0f, 1f);
         float size = Math.min(width * .32f, height * .34f) * (.62f + .38f * enter);
         float x = width * .5f;
@@ -482,6 +482,7 @@ public final class JackpotAnimation {
         if (rewardFromHatch) {
             float blend = ejecting ? 0f : Math.clamp(elapsed / 740f, 0f, 1f);
             blend = blend * blend * (3f - 2f * blend);
+            spinBlend = blend;
             float flight = ejecting ? VaultHud.finalFlight(stageProgress(Stage.VAULT_EJECT)) : 1f;
             float unit = VaultHud.scale(width, height);
             float hatchY = height * .61f - 77.5f * unit;
@@ -491,9 +492,18 @@ public final class JackpotAnimation {
             size = Mth.lerp(blend, Math.min(height * .12f, (hatchY - rise) * 1.2f)
                 * (.45f + .55f * flight) * Math.min(1f, flight * 7f), size);
         }
-        if (!ejecting) size *= Math.clamp(maxwinRemainingMs(System.currentTimeMillis()) / 220f, 0f, 1f);
+        if (!ejecting) size *= Math.clamp(maxwinRemainingMs(now) / 220f, 0f, 1f);
         int half = Math.round(size * .5f);
         if (half < 1) return;
+        if (rewardModel != null) {
+            try {
+                rewardModel.draw(gfx, x, y, size, (int)Math.ceil(Math.min(width, height) * .29f), spinBlend, now);
+                return;
+            } catch (RuntimeException e) {
+                NucleusMod.LOGGER.warn("Could not draw the 3D reward for {}. Using its bundled icon.", type(), e);
+                rewardModel = null;
+            }
+        }
         var pose = gfx.pose();
         pose.pushMatrix();
         try {
@@ -571,7 +581,7 @@ public final class JackpotAnimation {
 		if (active && !newBundle && !preview && !previewRun && t == type && now - seqStart < 3000L) {
 			return;
 		}
-		if(active && rewardShown)ItemPopup.clear();
+		rewardModel = null;
 		type = t;
 		active = true;
 		previewRun = preview;
@@ -1052,7 +1062,7 @@ public final class JackpotAnimation {
 
 	/** Hard stop: clears coins/timers so nothing lingers (world change). */
 	public static synchronized void stop() {
-		if(active && rewardShown)ItemPopup.clear();
+		rewardModel = null;
 		rewardShown=false;
 
 		active = false;
@@ -1801,46 +1811,31 @@ public final class JackpotAnimation {
 	/** One Totem-style pop for the drop, stretched across its whole phase. */
 	private static void fireTotem(DropType t) {
         rewardFromHatch = stage() == Stage.VAULT_EJECT;
-        if (!NucleusMod.CONFIG.legacyRewardPopup) {
-            rewardSprite = JackpotHud.dropIcon(t, flawlessGem);
-            return;
+        rewardSprite = JackpotHud.dropIcon(t, flawlessGem);
+        rewardModel = null;
+        if (!NucleusMod.CONFIG.legacyRewardPopup || t == null) return;
+        try {
+            long now = System.currentTimeMillis();
+            long duration = Math.max(1L, seqEnd - now);
+            double land = WinRollup.landAt();
+            double[] ends = WinRollup.segEnds();
+            double peakAt = land;
+            for (int i = ends.length - 2; i >= 0; i--) {
+                if (ends[i] < land - 1.0) {
+                    peakAt = ends[i];
+                    break;
+                }
+            }
+            float peak = (float) Mth.clamp((peakAt / speedCeleb() + 250.0) / duration, .2, .75);
+            float yaw = switch (t) {
+                case QUICK_CLAW -> 160f;
+                case DIVANS_ALLOY -> 180f;
+                default -> 0f;
+            };
+            rewardModel = new ItemPopup(t.stack(), yaw, peak, now, duration);
+        } catch (RuntimeException e) {
+            NucleusMod.LOGGER.warn("Could not prepare the 3D reward for {}. Using its bundled icon.", t, e);
         }
-		try {
-				if (t == null) {
-				return;
-			}
-			ItemStack stack = t.stack();
-			if (stack != null && !stack.isEmpty()) {
-				long maxwinMs;
-				synchronized (JackpotAnimation.class) {
-					maxwinMs = seqEnd - System.currentTimeMillis();
-				}
-				int ticks = Mth.clamp(Math.round(maxwinMs / 50f), 1, ItemPopup.MAX_TICKS);
-				// Peak (closest, biggest) on the last "X WIN" banner, or on
-				// the lock for drops that never break a tier.
-				double[] ends = WinRollup.segEnds();
-				double land = WinRollup.landAt();
-				double peakRm = land;
-				for (int i = ends.length - 2; i >= 0; i--) {
-					if (ends[i] < land - 1.0) {
-						peakRm = ends[i];
-						break;
-					}
-				}
-				float peak = (float) Mth.clamp((peakRm / speedCeleb() + 250.0) / Math.max(1.0, maxwinMs), 0.2, 0.75);
-				// Claw's paw lives on the head's side: park the readable
-				// dwell there, otherwise it only flashes by mid-sweep.
-				// Alloy gets a slight turn so its face catches the light.
-				float yaw = switch (t) {
-					case QUICK_CLAW -> 160f;
-					case DIVANS_ALLOY -> 180f;
-					default -> 0f;
-				};
-				ItemPopup.lighting = null;
-				ItemPopup.popup(stack.copy(), ticks, false, true, false, yaw, peak, stage()==Stage.VAULT_EJECT);
-			}
-		} catch (Exception ignored) {
-		}
 	}
 
 	/**
