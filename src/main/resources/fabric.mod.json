@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "kca",
+  "version": "1.13.7",
+  "name": "Kitagawa Codex Addons",
+  "description": "Airks Modded Bs for things that I like; 1.13.7",
+  "authors": ["Airk and Codex icl" ],
+  "contributors": [
+    "Synnerz/devonian contributors (original timer and server tick hook)",
+    "Mado / Madobrick (some original Nucleus utilities, wheel animation and final drop reveal)"
+  ],
+  "license": "GPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "modmenu": [
+      "dev.purplepad.KcaModMenu"
+    ],
+    "client": [
+      "dev.purplepad.PurplePadClient",
+      "com.nucleus.client.NucleusClient"
+    ],
+    "main": [
+      "com.nucleus.NucleusMod"
+    ]
+  },
+  "mixins": [
+    "purple-pad-timer.mixins.json",
+    "nucleus.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.1.2",
+    "java": ">=25",
+    "fabric-api": ">=0.155.3"
+  },
+  "icon": "assets/kca/icon.png",
+  "jars": [
+    {
+      "file": "META-INF/jars/jlayer-1.0.1.4.jar"
+    }
+  ],
+  "breaks": {
+    "purple_pad_timer": "*",
+    "nucleus": "*"
+  }
+}

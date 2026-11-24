@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "dev.purplepad.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["SharedChat", "BetaNameTag", "RaritySlots", "RarityHotbar", "SkyblockerRarity", "SkyblockerStorageRarity", "SkysoftStorageRarity", "TypedShortcut", "ShortcutKeys", "SkyblockerShortcuts", "SkysoftInventoryShortcuts", "ServerPingMixin", "PartyPong", "StormChatMixin", "SboPartyReply", "BladeSplitRecap", "NoammClearReport", "NoammPartyReply", "OdinPartyReply"],
+  "injectors": { "defaultRequire": 1 }
+}

@@ -1,0 +1,2 @@
+# One Minecraft Java UUID or exact username per line. UUIDs survive renames.
+# Rebuild KCA and distribute that build to everyone who should see the badges.

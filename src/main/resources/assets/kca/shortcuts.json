@@ -1,0 +1,30 @@
+{
+  "commands": {
+    "/ga": "/warp garden",
+    "/gc": "/chat guild",
+    "/co": "/chat officer",
+    "/d": "/warp dungeon_hub",
+    "/dh": "/warp dungeon_hub",
+    "/i": "/is",
+    "/a": "/chat all",
+    "/h": "/hub",
+    "/s": "/skyblock",
+    "/vp": "/visit portalhub",
+    "/pc": "/chat party",
+    "/pd": "/p disband"
+  },
+  "commandArgs": {
+    "/leap": "/gfs SPIRIT_LEAP 16",
+    "/void": "/warp void",
+    "/murk": "/warp murkwater",
+    "/cc": "/chat coop",
+    "/crim": "/warp crimson",
+    "/is": "/warp island",
+    "/ep": "/gfs ENDER_PEARL 16",
+    "/m": "/msg",
+    "/pa": "/p accept",
+    "/calc": "/skyblocker calculate",
+    "/v": "/visit",
+    "/boom": "/gfs SUPERBOOM_TNT 64"
+  }
+}

@@ -1,0 +1,198 @@
+package com.nucleus.client;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.core.BlockPos;
+
+import com.nucleus.NucleusMod;
+
+/**
+ * Holds the 3 Temple waypoints plus one custom waypoint under the player's feet.
+ * Offsets are relative to the origin block: the player's feet in Manual mode,
+ * the higher-X Door Guardian's feet in Automatic mode:
+ * <ul>
+ * <li>WP1: +3 x, +8 y, +63 z</li>
+ * <li>WP2: +29 x, -32 y, +65 z</li>
+ * <li>WP3: +29 x, -32 y, +48 z</li>
+ * <li>Custom: block under the player's feet at capture time</li>
+ * </ul>
+ */
+public final class NucleusWaypoints {
+	public record Waypoint(String label, BlockPos pos, int index) {
+	}
+
+	/** Index used for the custom waypoint (shares line settings, own color/visibility). */
+	public static final int CUSTOM_INDEX = 3;
+
+	private static final int[][] OFFSETS = {
+		{ 3, 8, 63 },
+		{ 29, -32, 65 },
+		{ 29, -32, 48 }
+	};
+
+	private static final int[][] RIGHT_GUARDIAN = {{4,10,65},{29,-32,65},{29,-32,48}};
+
+	private static final String[] LABELS = { "Waypoint 1", "Waypoint 2", "Waypoint 3" };
+
+	private static final List<Waypoint> WAYPOINTS = new ArrayList<>();
+
+	/** Custom waypoints under the player's feet (up to MAX_CUSTOM, newest last). */
+	public static final int MAX_CUSTOM = 100;
+	private static final List<Waypoint> CUSTOM_WAYPOINTS = new ArrayList<>();
+	private static int customCounter = 0;
+    record RenderSnapshot(List<Waypoint> temple,List<Waypoint> all){}
+    private static RenderSnapshot renderCache;
+    static synchronized RenderSnapshot renderSnapshot(){
+        if(renderCache==null){
+            var all=new ArrayList<>(WAYPOINTS);all.addAll(CUSTOM_WAYPOINTS);
+            renderCache=new RenderSnapshot(List.copyOf(WAYPOINTS),List.copyOf(all));
+        }
+        return renderCache;
+    }
+
+	private NucleusWaypoints() {
+	}
+
+	public static void setFromOrigin(BlockPos origin) {
+		setFromOrigin(origin, NucleusMod.CONFIG.useReferenceOffsets);
+	}
+
+	public static synchronized void setFromOrigin(BlockPos origin, boolean rightGuardian) {
+		int[][] offsets = rightGuardian ? RIGHT_GUARDIAN : OFFSETS;
+		WAYPOINTS.clear();
+        renderCache=null;
+		for (int i = 0; i < offsets.length; i++) {
+			int[] o = offsets[i];
+			BlockPos pos = origin.offset(o[0], o[1], o[2]);
+			WAYPOINTS.add(new Waypoint(LABELS[i], pos.immutable(), i));
+		}
+	}
+
+	public static synchronized void clear() {
+		WAYPOINTS.clear();
+        renderCache=null;
+		clearCustom();
+	}
+
+	/** Clears only the 3 temple waypoints (custom ones survive mode switches). */
+	public static synchronized void clearTemple() {
+		WAYPOINTS.clear();
+        renderCache=null;
+	}
+
+	public static synchronized void addCustom(BlockPos feetBlockBelow) {
+		if (CUSTOM_WAYPOINTS.size() >= MAX_CUSTOM) {
+			CUSTOM_WAYPOINTS.remove(0);
+		}
+		renderCache=null;
+		customCounter++;
+		CUSTOM_WAYPOINTS.add(new Waypoint("Custom " + customCounter, feetBlockBelow.immutable(), CUSTOM_INDEX));
+	}
+
+	/** Removes the most recently placed custom waypoint; returns it or null. */
+	public static synchronized Waypoint removeLastCustom() {
+		if (CUSTOM_WAYPOINTS.isEmpty()) {
+			return null;
+		}
+		renderCache=null;
+		return CUSTOM_WAYPOINTS.remove(CUSTOM_WAYPOINTS.size() - 1);
+	}
+
+	public static synchronized void clearCustom() {
+		CUSTOM_WAYPOINTS.clear();
+        renderCache=null;
+		customCounter = 0;
+	}
+
+	public static synchronized List<Waypoint> customSnapshot() {
+		return new ArrayList<>(CUSTOM_WAYPOINTS);
+	}
+
+	/** Clipboard tag: MNUW1|x,y,z|... (custom waypoints only, never temple). */
+	private static final String EXPORT_TAG = "MNUW1";
+
+	/** Compact export text, or empty when there is nothing to copy. */
+	public static synchronized String exportCustom() {
+		if (CUSTOM_WAYPOINTS.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder(EXPORT_TAG);
+		for (Waypoint wp : CUSTOM_WAYPOINTS) {
+			BlockPos p = wp.pos();
+			sb.append('|').append(p.getX()).append(',')
+				.append(p.getY()).append(',').append(p.getZ());
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Parses export text back into custom waypoints (same 100 cap as manual
+	 * adds). Returns how many were placed, 0 when the clipboard holds no
+	 * waypoint data.
+	 */
+	public static synchronized int importCustom(String text) {
+		if (text == null) {
+			return 0;
+		}
+		String t = text.trim();
+		if (!t.startsWith(EXPORT_TAG + "|")) {
+			return 0;
+		}
+		int placed = 0;
+		for (String part : t.substring(EXPORT_TAG.length() + 1).split("\\|")) {
+			String[] xyz = part.split(",");
+			if (xyz.length != 3) {
+				continue;
+			}
+			try {
+				int x = clampCoord(Integer.parseInt(xyz[0].trim()));
+				int y = clampCoord(Integer.parseInt(xyz[1].trim()));
+				int z = clampCoord(Integer.parseInt(xyz[2].trim()));
+				addCustom(new BlockPos(x, y, z));
+				placed++;
+			} catch (NumberFormatException ignored) {
+			}
+		}
+		return placed;
+	}
+
+	private static int clampCoord(int v) {
+		return Math.max(-30000000, Math.min(30000000, v));
+	}
+
+	public static synchronized boolean hasCustom() {
+		return !CUSTOM_WAYPOINTS.isEmpty();
+	}
+
+	public static synchronized int customCount() {
+		return CUSTOM_WAYPOINTS.size();
+	}
+
+	public static synchronized List<Waypoint> snapshot() {
+		return new ArrayList<>(WAYPOINTS);
+	}
+
+	public static synchronized boolean hasWaypoints() {
+		return !WAYPOINTS.isEmpty();
+	}
+
+
+	public static int colorFor(int index) {
+		return switch (index) {
+			case 0 -> NucleusMod.CONFIG.waypoint1Color;
+			case 1 -> NucleusMod.CONFIG.waypoint2Color;
+			case 2 -> NucleusMod.CONFIG.waypoint3Color;
+			default -> NucleusMod.CONFIG.customWaypointColor;
+		};
+	}
+
+	public static boolean visibleFor(int index) {
+		return switch (index) {
+			case 0 -> NucleusMod.CONFIG.showWaypoint1;
+			case 1 -> NucleusMod.CONFIG.showWaypoint2;
+			case 2 -> NucleusMod.CONFIG.showWaypoint3;
+			default -> NucleusMod.CONFIG.showCustomWaypoint;
+		};
+	}
+}

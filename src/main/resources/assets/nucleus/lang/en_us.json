@@ -1,0 +1,9 @@
+{
+  "key.nucleus.set_waypoints": "Set Temple Waypoints",
+  "key.nucleus.set_custom_waypoint": "Set Custom Waypoint",
+  "key.nucleus.remove_last_custom": "Remove Last Custom Waypoint",
+  "key.nucleus.skip_split": "Skip Nucleus split",
+  "key.nucleus.quick_spin": "Quick-spin Gambling Wheel",
+  "category.kca.nucleus": "KCA · Nucleus",
+  "key.category.kca.nucleus": "KCA · Nucleus"
+}

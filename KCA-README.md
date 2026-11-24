@@ -1,6 +1,14 @@
 # Kitagawa Codex Addons
 
-KCA 1.11.0 is a client-side Fabric mod for Minecraft 26.1.2. Open its skill tree with `/kca` or the configure button in Mod Menu. Select Nucleus, General, Dungeons, Chat (fourth branch) or Kuudra. Type a setting in the search bar, or search from chat with `/kca secrets color`. Select a result to open its page. General has two home-screen shortcuts, Achievements and Move all HUD. Select the CN Gambling leaf on the Nucleus branch to open its animation settings directly.
+### Hollows landmarks, stash, and testers
+
+- Use `/kca map set mines_of_divan 633 82 412` to set a landmark for this lobby. Press Tab after `/kca map set ` to see all supported names. A manual pin takes priority over chat and Skyblocker discoveries.
+- Use `/kca map share` to send all known Hollows landmarks to party chat with their original X, Y, and Z. Party members can read the message with any client. KCA clients also pick up the named coordinates.
+- `/kca stash` shows the latest item and material counts reported by SkyBlock. Enable or disable its HUD under Nucleus → HUD & alerts. With your inventory open, click **[Edit stash]** below its count. Drag the text to move it, scroll over it to resize, and use the two controls to choose which counts and areas to display. Click **[Done]** to finish. A question mark means the current count is unknown.
+- Under Nucleus → HUD & alerts, enable Low tools alert and Mole check on tool reminder to see your pet status when restocking. Enable SkyBlock’s Pet tab widget to identify your active pet before a summon or swap.
+- To award a pink **BETA** badge, edit `src/main/resources/assets/kca/beta-testers.txt` before building. Enter one Minecraft Java username or hyphenated UUID per line. Save the file, run `.\build.ps1` in the project folder, and distribute the updated JAR to viewers. General → Appearance → Beta badges controls visibility on each viewer’s client.
+
+KCA is a client-side Fabric mod for Minecraft 26.1.2. Open its skill tree with `/kca` or the configure button in Mod Menu. Select Nucleus, General, Dungeons, Chat (fourth branch) or Kuudra. Type a setting in the search bar, or search from chat with `/kca secrets color`. Select a result to open its page. General has two home-screen shortcuts, Achievements and Move all HUD. Select the CN Gambling leaf on the Nucleus branch to open its animation settings directly.
 
 ## Party reports and Nucleus settings in 1.11.0
 

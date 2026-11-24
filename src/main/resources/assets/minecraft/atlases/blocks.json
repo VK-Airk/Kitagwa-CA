@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "kca:item/mado/divan_fragment"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "kca:item/mado/jaderald"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "kca:item/mado/gemstone_mixture"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "kca:item/mado/flawless_ruby_gem"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "kca:item/mado/precious_pearl"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "minecraft:item/lantern"
+    }
+  ]
+}
