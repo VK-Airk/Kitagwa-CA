@@ -469,6 +469,42 @@ public final class JackpotAnimation {
 	static com.nucleus.NucleusConfig.Ending ending=com.nucleus.NucleusConfig.Ending.Classic;
 	private static float finaleSpeed=1f;
 	private static boolean rewardShown;
+    private static net.minecraft.resources.Identifier rewardSprite;
+    private static boolean rewardFromHatch;
+
+    static void drawRewardSprite(net.minecraft.client.gui.GuiGraphicsExtractor gfx, int width, int height, boolean ejecting) {
+        if (!rewardShown || rewardSprite == null) return;
+        long elapsed = maxwinElapsedMs(System.currentTimeMillis());
+        float enter = Math.clamp(elapsed / 320f, 0f, 1f);
+        float size = Math.min(width * .32f, height * .34f) * (.62f + .38f * enter);
+        float x = width * .5f;
+        float y = height * .48f;
+        if (rewardFromHatch) {
+            float blend = ejecting ? 0f : Math.clamp(elapsed / 740f, 0f, 1f);
+            blend = blend * blend * (3f - 2f * blend);
+            float flight = ejecting ? VaultHud.finalFlight(stageProgress(Stage.VAULT_EJECT)) : 1f;
+            float unit = VaultHud.scale(width, height);
+            float hatchY = height * .61f - 77.5f * unit;
+            float rise = Math.min(hatchY * .80f, 32f * unit) * (2.35f * flight - 1.6f * flight * flight);
+            x = Mth.lerp(blend, x + (9f + 10f * flight) * unit, x);
+            y = Mth.lerp(blend, hatchY - rise, y);
+            size = Mth.lerp(blend, Math.min(height * .12f, (hatchY - rise) * 1.2f)
+                * (.45f + .55f * flight) * Math.min(1f, flight * 7f), size);
+        }
+        if (!ejecting) size *= Math.clamp(maxwinRemainingMs(System.currentTimeMillis()) / 220f, 0f, 1f);
+        int half = Math.round(size * .5f);
+        if (half < 1) return;
+        var pose = gfx.pose();
+        pose.pushMatrix();
+        try {
+            pose.translate(x, y);
+            pose.rotate(.09f * (float) Math.sin(elapsed / 260.0));
+            gfx.blit(rewardSprite, -half, -half, half, half, 0f, 1f, 0f, 1f);
+        } finally {
+            pose.popMatrix();
+        }
+    }
+
     static boolean rewardShown(){return rewardShown;}
 	// Classic spring flapper for the main spin; the deterministic curve
 	// takes over for the finale only (see flapperAngle).
@@ -571,6 +607,7 @@ public final class JackpotAnimation {
             default -> throw new IllegalStateException("Unresolved game "+game);
 		};
 		rewardShown=false;
+        rewardSprite=null;
         crystalOpeningMs=ending==com.nucleus.NucleusConfig.Ending.CrystalVault
             ? (long)((NucleusMod.CONFIG.crystalGateMs + (game==com.nucleus.NucleusConfig.Game.CrystalVault?0:950))/sWheel) : 0;
         ejectDuration=0;
@@ -1763,6 +1800,11 @@ public final class JackpotAnimation {
 
 	/** One Totem-style pop for the drop, stretched across its whole phase. */
 	private static void fireTotem(DropType t) {
+        rewardFromHatch = stage() == Stage.VAULT_EJECT;
+        if (!NucleusMod.CONFIG.legacyRewardPopup) {
+            rewardSprite = JackpotHud.dropIcon(t, flawlessGem);
+            return;
+        }
 		try {
 				if (t == null) {
 				return;

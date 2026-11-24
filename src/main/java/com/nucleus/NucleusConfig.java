@@ -130,6 +130,7 @@ public class NucleusConfig {
     }
     public java.util.Map<String,Game> dropGames=new java.util.HashMap<>();
     public boolean shuffleGames, revealFlashes=true, revealBanner=true;
+    public boolean legacyRewardPopup;
     public int crystalGateMs=1400, crystalHudX=12, crystalHudY=150;
     public float crystalHudScale=1;
     public java.util.Set<Game> excludedGames=new java.util.HashSet<>(java.util.Set.of(Game.Wheel));

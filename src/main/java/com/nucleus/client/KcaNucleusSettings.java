@@ -1662,6 +1662,7 @@ public final class KcaNucleusSettings extends Screen {
 		addRenderableWidget(testButton);
 		y += rowH;
 
+        y=option(cx,y,"Legacy 3D reward",cfg.legacyRewardPopup,v->cfg.legacyRewardPopup=v,"Use the original spinning item. Turn this off to show the bundled drop icon if rewards appear blank.");
         y=option(cx,y,"Reward banner",cfg.revealBanner,v->cfg.revealBanner=v,"Show your custom win or loss heading during the final reveal.");
         y=option(cx,y,"Reveal flashes",cfg.revealFlashes,v->cfg.revealFlashes=v,"Show full-screen flashes and the flashing border during the final reveal.");
         Button confetti=NucleusUi.NButton.create(Component.literal("Confetti - "+cfg.confettiPercent+"%"),btn->{
