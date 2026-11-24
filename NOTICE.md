@@ -50,3 +50,10 @@ The pink personal-best marker uses the Google Material Design Icons emoji_events
 The black card-suit table in Briefcase slots uses the supplied CASINO TEXTURE.jpg, converted to PNG for Minecraft.
 
 The item_background_square.png and item_background_circular.png sprites are from Skyblocker 6.11.0 by the Skyblocker contributors (https://github.com/SkyblockerMod/Skyblocker). See LICENSE_skyblocker.
+
+## Gallery additions in 1.13.9
+
+- Pink sunglasses portrait by Midnite Blue Draws. [Artist’s post](https://www.artstation.com/artwork/AlXb2z)
+- Park bench illustration signed ARDEN. [Artist’s portfolio](https://ardenlolo.artstation.com/projects/o29zrw)
+- Color portrait and companion line drawing by Takko (@_takk00). [Original carousel](https://www.instagram.com/p/DaRPqV8EdaT/)
+- White-haired uniform portrait signed @shirrori. [Artist’s profile](https://ko-fi.com/shirrori)
