@@ -57,3 +57,5 @@ The item_background_square.png and item_background_circular.png sprites are from
 - Park bench illustration signed ARDEN. [Artist’s portfolio](https://ardenlolo.artstation.com/projects/o29zrw)
 - Color portrait and companion line drawing by Takko (@_takk00). [Original carousel](https://www.instagram.com/p/DaRPqV8EdaT/)
 - White-haired uniform portrait signed @shirrori. [Artist’s profile](https://ko-fi.com/shirrori)
+
+The Jade Dye and Quick Claw reward heads use their original [Jade Dye skin](https://textures.minecraft.net/texture/8b215ff671f111e98d17a473fda8e5e9d0425ccd6e79426654ccb55f3f0cc652) and [Quick Claw skin](https://textures.minecraft.net/texture/6312a5a12ecb24d6852db388e6a34721cc67f522ccde7e824b9f75e95036ac93). The legacy Quick Claw image is padded to fit the player-head model.

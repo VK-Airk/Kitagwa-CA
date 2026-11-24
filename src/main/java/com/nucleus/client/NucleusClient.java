@@ -204,7 +204,6 @@ public class NucleusClient implements ClientModInitializer {
 		if (KcaEdition.NUCLEUS && client.level != null && client.player != null) {
 			JackpotDetector.tickForced();
             if (JackpotAnimation.isActive()) JackpotAnimation.tick(client);
-			if (ItemPopup.playing()) ItemPopup.tick();
 		}
 		if (!NucleusMod.CONFIG.kcaEnabled) return;
         SkyBlockDetector.tick(client);
