@@ -43,14 +43,14 @@ public final class DungeonHudPreview {
         if(!timer){RunStats.options(value,RunStats.chat);return;}
         var next=PurplePadClient.timerConfig();next.enabled=value;
         try{PurplePadClient.applySettings(next);}catch(java.io.IOException e){
-            Minecraft.getInstance().gui.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal("Could not save timer settings."));
+            Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal("Could not save timer settings."));
         }
     }
     public void save(int x,int y,float scale){
         if(timer){
             var c=PurplePadClient.timerConfig();c.scale=scale;c.x=x;c.y=y;
             try{PurplePadClient.applySettings(c);}catch(java.io.IOException e){
-                Minecraft.getInstance().gui.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal("Could not save timer placement."));
+                Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal("Could not save timer placement."));
             }
         }else{
             var b=box(scale);RunStats.positionX=CounterPlacement.fraction(x,b.travelX());RunStats.positionY=CounterPlacement.fraction(y,b.travelY());

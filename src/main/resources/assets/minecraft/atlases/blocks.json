@@ -2,27 +2,33 @@
   "sources": [
     {
       "type": "minecraft:single",
-      "resource": "kca:item/mado/divan_fragment"
+      "resource": "kca:item/mado/divan_fragment",
+      "sprite": "kca:block/vault/divan_fragment"
     },
     {
       "type": "minecraft:single",
-      "resource": "kca:item/mado/jaderald"
+      "resource": "kca:item/mado/jaderald",
+      "sprite": "kca:block/vault/jaderald"
     },
     {
       "type": "minecraft:single",
-      "resource": "kca:item/mado/gemstone_mixture"
+      "resource": "kca:item/mado/gemstone_mixture",
+      "sprite": "kca:block/vault/gemstone_mixture"
     },
     {
       "type": "minecraft:single",
-      "resource": "kca:item/mado/flawless_ruby_gem"
+      "resource": "kca:item/mado/flawless_ruby_gem",
+      "sprite": "kca:block/vault/flawless_ruby_gem"
     },
     {
       "type": "minecraft:single",
-      "resource": "kca:item/mado/precious_pearl"
+      "resource": "kca:item/mado/precious_pearl",
+      "sprite": "kca:block/vault/precious_pearl"
     },
     {
       "type": "minecraft:single",
-      "resource": "minecraft:item/lantern"
+      "resource": "minecraft:item/lantern",
+      "sprite": "kca:block/vault/lantern"
     }
   ]
 }

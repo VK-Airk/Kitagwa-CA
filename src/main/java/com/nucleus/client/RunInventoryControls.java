@@ -55,7 +55,7 @@ final class RunInventoryControls {
         });
         skip=link("[Skip]",33,"Advance past the current split and keep timing.",SpeedrunManager::skipSplit);
         settings=link("[Settings]",57,"Open speedrun settings, run goal and tracked total.",()->
-                client.setScreen(new KcaNucleusSettings(KcaNucleusSettings.sections(KcaNucleusSettings.Tab.SPEEDRUNS).getFirst(),inventory)));
+                client.gui.setScreen(new KcaNucleusSettings(KcaNucleusSettings.sections(KcaNucleusSettings.Tab.SPEEDRUNS).getFirst(),inventory)));
         total=new EditBox(mc.font,0,0,64,ROW,Component.literal("Run count"));
         total.setMaxLength(20);
         total.setTooltip(Tooltip.create(Component.literal("Enter a number to set it, or +50 to add 50.")));
@@ -64,7 +64,7 @@ final class RunInventoryControls {
         goal=link("[Edit goal]",69,"Change the target. Enter +50 to raise the goal by 50.",()->beginEdit(Count.GOAL));
         editTools=link("[Edit sets]",65,"Set your complete Divan tool sets, or enter +5 to add five.",()->beginEdit(Count.TOOLS));
         scanTools=link("[Scan bags]",69,"Count complete sets across your active profile’s backpacks.",()->
-            ToolSets.scan(mc.gui.getChat()::addClientSystemMessage));
+            ToolSets.scan(mc.gui.hud.getChat()::addClientSystemMessage));
         save=link("[Save]",36,"Apply this edit.",()->{
             long value=editedCount();
             if(value<0)return;

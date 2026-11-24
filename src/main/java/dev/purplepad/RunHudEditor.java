@@ -54,7 +54,7 @@ final class RunHudEditor extends Screen {
         addRenderableWidget(new TimerSettingsScreen.PixelButton(cx+4,row,80,20,"Save",KcaTheme.ROSE,b->save()));
     }
     private void save(){RunStats.scale=scale;RunStats.positionX=x;RunStats.positionY=y;RunStats.saveOptions();onClose();}
-    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return false;}
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean twice){
         if(super.mouseClicked(e,twice))return true;

@@ -73,7 +73,7 @@ public final class Shortcuts {
         if(!down){held.remove(name);return;}
         if(!active() || !Group.KEY.enabled() || rules.keyBindings.isEmpty())return;
         var mc=net.minecraft.client.Minecraft.getInstance();
-        if(mc.player==null||mc.screen!=null||mc.getOverlay()!=null){clearKeys();return;}
+        if(mc.player==null||mc.gui.screen()!=null||mc.gui.overlay()!=null){clearKeys();return;}
         if(!held.add(name))return;
         String action=rules.keyBindings.get(name);
         if(action==null && held.size()>1)action=rules.keyBindings.get(String.join(" + ",held));

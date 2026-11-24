@@ -39,7 +39,7 @@ public final class RunStats {
         if(!PartyChat.playerName(name)||name.equalsIgnoreCase(mc.getUser().getName()))return;
         var action=Component.literal("[Kick "+name+"]").withStyle(style->style.withUnderlined(true)
             .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/party kick "+name)));
-        mc.gui.getChat().addClientSystemMessage(Component.literal("[KCA] "+reason+" ").append(action));
+        mc.gui.hud.getChat().addClientSystemMessage(Component.literal("[KCA] "+reason+" ").append(action));
     }
     static List<String> sampleLowest(String template){
         return ClearReport.lowest(List.of(new ClearReport("Alex","Tank",3,2),new ClearReport("Sam","Archer",5,8),
@@ -173,7 +173,7 @@ public final class RunStats {
         ClientReceiveMessageEvents.ALLOW_GAME.register((message,overlay)->overlay||!active||!header||!isCommandReply(com.nucleus.client.HollowsDetector.stripFormatting(message.getString()).trim()));
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,Identifier.fromNamespaceAndPath("kca","run_stats"),(g,d)->{
             var mc=Minecraft.getInstance();
-            if(!PurplePadClient.hudEnabled()||!active||!hud||!inDungeon||mc.player==null||mc.options.hideGui||mc.screen instanceof com.nucleus.client.MoveHudScreen||mc.screen instanceof GuiSettingsScreen||mc.screen instanceof RunHudEditor)return;
+            if(!PurplePadClient.hudEnabled()||!active||!hud||!inDungeon||mc.player==null||mc.gui.hud.isHidden()||mc.gui.screen() instanceof com.nucleus.client.MoveHudScreen||mc.gui.screen() instanceof GuiSettingsScreen||mc.gui.screen() instanceof RunHudEditor)return;
             if(displayStamp!=age/5){
             displayStamp=age/5;
             List<String> lines=new ArrayList<>();
@@ -199,7 +199,7 @@ public final class RunStats {
         props.setProperty("kcaBackdrop",""+kcaBackdrop);
         props.setProperty("simple",""+simple);props.setProperty("x",""+positionX);props.setProperty("y",""+positionY);
         try(var out=Files.newOutputStream(CONFIG)){props.store(out,"KCA Dungeons");}
-        catch(IOException e){Minecraft.getInstance().gui.getChat().addClientSystemMessage(Component.literal("KCA could not save dungeon settings."));}
+        catch(IOException e){Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(Component.literal("KCA could not save dungeon settings."));}
     }
     private static void worldChanged(boolean sameConnection){
         var mc=Minecraft.getInstance();
@@ -341,7 +341,7 @@ public final class RunStats {
         nextReportSend=now+650_000_000L;
     }
     private static void local(Minecraft mc,String line){
-        mc.gui.getChat().addClientSystemMessage(Component.literal("§d[KCA] §r"+line));
+        mc.gui.hud.getChat().addClientSystemMessage(Component.literal("§d[KCA] §r"+line));
     }
     private static class Http {static final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();}
     private static boolean isCommandReply(String message){

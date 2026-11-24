@@ -8,7 +8,7 @@
 - Under Nucleus → HUD & alerts, enable Low tools alert and Mole check on tool reminder to see your pet status when restocking. Enable SkyBlock’s Pet tab widget to identify your active pet before a summon or swap.
 - To award a pink **BETA** badge, edit `src/main/resources/assets/kca/beta-testers.txt` before building. Enter one Minecraft Java username or hyphenated UUID per line. Save the file, run `.\build.ps1` in the project folder, and distribute the updated JAR to viewers. General → Appearance → Beta badges controls visibility on each viewer’s client.
 
-KCA is a client-side Fabric mod for Minecraft 26.1.2. Open its skill tree with `/kca` or the configure button in Mod Menu. Select Nucleus, General, Dungeons, Chat (fourth branch) or Kuudra. Type a setting in the search bar, or search from chat with `/kca secrets color`. Select a result to open its page. General has two home-screen shortcuts, Achievements and Move all HUD. Select the CN Gambling leaf on the Nucleus branch to open its animation settings directly.
+KCA is a client-side Fabric mod for Minecraft 26.2. Open its skill tree with `/kca` or the configure button in Mod Menu. Select Nucleus, General, Dungeons, Chat (fourth branch) or Kuudra. Type a setting in the search bar, or search from chat with `/kca secrets color`. Select a result to open its page. General has two home-screen shortcuts, Achievements and Move all HUD. Select the CN Gambling leaf on the Nucleus branch to open its animation settings directly.
 
 ## Party reports and Nucleus settings in 1.11.0
 
@@ -20,9 +20,9 @@ KCA is a client-side Fabric mod for Minecraft 26.1.2. Open its skill tree with `
 
 ## Install
 
-1. Close Minecraft and put `KCA-1.11.0-mc26.1.2.jar` in your active 26.1.2 Fabric mods folder.
+1. Close Minecraft and put `KCA-1.11.0-mc26.2.jar` in your active 26.2 Fabric mods folder.
 2. Replace your previous KCA JAR. Move any standalone Purple Pad Timer or Mado Nucleus Utilities JAR out of the active folder. KCA uses the existing Nucleus, dungeon and timer settings. Other Noamm features still require Noamm. If you keep Noamm and see two dungeon reports, switch off one chat printer.
-3. Use Java 25+, Fabric Loader 0.19.5+, and Fabric API 0.155.3+ for 26.1.2. Mod Menu is optional.
+3. Use Java 25+, Fabric Loader 0.19.5+, and Fabric API 0.161.0+ for 26.2. Mod Menu is optional.
 
 ## Party chat commands
 
@@ -165,7 +165,7 @@ Tool Finder searches for the Jade anchor across multiple client ticks. Each slic
 
 Unzip the source and run `pwsh -File ./build.ps1` with a JDK 25 toolchain on PATH. The script uses the installed OneClient libraries and Mod Menu compile-time API. Use `-OneClientRoot`, `-MinecraftJar`, `-FabricApiJar` or `-ModMenuJar` to override paths. It compiles, runs timer, HUD geometry and dungeon report tests, and packages the JAR in the build directory.
 
-The dungeon tests cover solo and shared room credit, repeated checkmarks, previously cleared maps, and missing or reset secret counters. The menu, global search, master switch, test-command switch, counter scale persistence, and shared HUD editor were also checked in an isolated Minecraft 26.1.2 client. Live Hypixel parity and FPS gains have not been measured.
+The dungeon tests cover solo and shared room credit, repeated checkmarks, previously cleared maps, and missing or reset secret counters. The menu, global search, master switch, test-command switch, counter scale persistence, and shared HUD editor were also checked in an isolated Minecraft 26.2 client. Live Hypixel parity and FPS gains have not been measured.
 
 General offers Full, Subtle and Off for Menu FX. The General achievements include using global search, changing Menu FX, opening Credits and editing the HUD. In Nucleus, open HUD & alerts for the Alerts and NPC highlights subtabs.
 

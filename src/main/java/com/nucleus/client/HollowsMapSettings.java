@@ -142,5 +142,5 @@ final class HollowsMapSettings extends Screen {
         super.removed();
     }
     @Override public boolean isPauseScreen() { return false; }
-    @Override public void onClose() { minecraft.setScreen(parent); }
+    @Override public void onClose() { minecraft.gui.setScreen(parent); }
 }

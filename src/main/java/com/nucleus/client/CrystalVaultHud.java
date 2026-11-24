@@ -32,12 +32,12 @@ final class CrystalVaultHud {
     // Dimensions are in the same units as the surrounding eleven-unit ore blocks.
     // UV bounds omit transparent margins so the visible edge meets the supporting surface.
     private enum Sample {
-        FRAGMENT("kca:item/mado/divan_fragment",2,2,14,14,5,2),
-        JADE("kca:item/mado/jaderald",1,0,15,16,5.5f,1.5f),
-        MIXTURE("kca:item/mado/gemstone_mixture",2,2,15,15,5,2.5f),
-        RUBY("kca:item/mado/flawless_ruby_gem",2,2,15,13,5,2),
-        PEARL("kca:item/mado/precious_pearl",1,1,15,15,5,2.5f),
-        LANTERN("minecraft:item/lantern",5,1,11,14,3.5f,7.5f);
+        FRAGMENT("kca:block/vault/divan_fragment",2,2,14,14,5,2),
+        JADE("kca:block/vault/jaderald",1,0,15,16,5.5f,1.5f),
+        MIXTURE("kca:block/vault/gemstone_mixture",2,2,15,15,5,2.5f),
+        RUBY("kca:block/vault/flawless_ruby_gem",2,2,15,13,5,2),
+        PEARL("kca:block/vault/precious_pearl",1,1,15,15,5,2.5f),
+        LANTERN("kca:block/vault/lantern",5,1,11,14,3.5f,7.5f);
         final Identifier texture;
         final int left,top,right,bottom;
         final float width,rise;

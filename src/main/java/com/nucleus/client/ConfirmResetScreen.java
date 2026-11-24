@@ -45,7 +45,7 @@ public class ConfirmResetScreen extends Screen {
 
 	public static void open(Screen parent, Mode mode) {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(new ConfirmResetScreen(parent, mode)));
+		client.execute(() -> client.gui.setScreen(new ConfirmResetScreen(parent, mode)));
 	}
 
 	@Override
@@ -60,13 +60,13 @@ public class ConfirmResetScreen extends Screen {
 				NucleusMod.SPEEDRUN.resetSettings();
 			}
 			Minecraft client = Minecraft.getInstance();
-			client.setScreen(parent);
+			client.gui.setScreen(parent);
 			KcaChat.chat(client, Component.literal(mode == Mode.ACHIEVEMENTS
 				? "§b[KCA] §7All achievements reset."
 				: "§b[KCA] §7All settings reset to defaults."));
 		}).pos(cx - 155, y).size(150, 20).build());
 		addRenderableWidget(NucleusUi.NButton.create(Component.literal("No, keep mine"), btn -> {
-			Minecraft.getInstance().setScreen(parent);
+			Minecraft.getInstance().gui.setScreen(parent);
 		}).pos(cx + 5, y).size(150, 20).build());
 	}
 

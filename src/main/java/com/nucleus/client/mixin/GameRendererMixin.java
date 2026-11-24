@@ -6,7 +6,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
-import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 
@@ -26,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
 	@Shadow
 	@Final
-	private SubmitNodeStorage submitNodeStorage;
+	private SubmitNodeStorage handAndScreenSubmitNodeStorage;
 
 	@Shadow
 	@Final
@@ -40,17 +39,13 @@ public abstract class GameRendererMixin {
 	@Final
 	private Projection hudProjection;
 
-	@Shadow
-	@Final
-	private RenderBuffers renderBuffers;
-
 	@Inject(method = "render", at = @At(value = "INVOKE",
 		target = "Lnet/minecraft/client/gui/render/GuiRenderer;endFrame()V", shift = At.Shift.AFTER))
 	private void nucleus$itemPopup(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
         if (!dev.purplepad.PurplePadClient.hudVisible(com.nucleus.client.JackpotAnimation.isPreview())) return;
 		try {
-			ItemPopup.render(hud3dProjectionMatrixBuffer, hudProjection, submitNodeStorage,
-				deltaTracker, featureRenderDispatcher, renderBuffers);
+			ItemPopup.render(hud3dProjectionMatrixBuffer, hudProjection, handAndScreenSubmitNodeStorage,
+				deltaTracker, featureRenderDispatcher);
 		} catch (Exception ignored) {
 		}
 	}

@@ -334,7 +334,7 @@ public final class PartyChat {
             return source+" could not supply this result.";
         }finally{preview=null;}
     }
-    static void notice(String line){if(preview!=null){preview.append(line);return;}var mc=Minecraft.getInstance();if(mc.player!=null)mc.gui.getChat().addClientSystemMessage(Component.literal("[KCA] "+line));}
+    static void notice(String line){if(preview!=null){preview.append(line);return;}var mc=Minecraft.getInstance();if(mc.player!=null)mc.gui.hud.getChat().addClientSystemMessage(Component.literal("[KCA] "+line));}
     static void server(String command){if(preview!=null){preview.append("Action: /").append(command);return;}var c=Minecraft.getInstance().getConnection();if(c!=null)c.sendCommand(command);}
     static void reply(String text){
         if(preview!=null){preview.append("/").append(NucleusMod.CONFIG.partyReplyRoute).append(" [KCA] ").append(text);return;}

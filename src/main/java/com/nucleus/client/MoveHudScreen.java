@@ -109,7 +109,7 @@ public class MoveHudScreen extends Screen {
 
 	public static void open(Screen parent) {
 		Minecraft client = Minecraft.getInstance();
-		client.schedule(() -> client.setScreen(new MoveHudScreen(parent)));
+		client.schedule(() -> client.gui.setScreen(new MoveHudScreen(parent)));
 	}
 
 	private static float clampScale(float s) {
@@ -415,7 +415,7 @@ public class MoveHudScreen extends Screen {
 
 	@Override
 	public void onClose() {
-		saveAll(); Minecraft.getInstance().setScreen(parent);
+		saveAll(); Minecraft.getInstance().gui.setScreen(parent);
 	}
 
 	@Override

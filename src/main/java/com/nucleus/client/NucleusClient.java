@@ -21,7 +21,7 @@ import dev.purplepad.KcaEdition;
 public class NucleusClient implements ClientModInitializer {
     private static void addHud(String id, HudElement element) {
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(NucleusMod.MOD_ID, id), (graphics, delta) -> {
-            if (dev.purplepad.PurplePadClient.hudEnabled() && !(Minecraft.getInstance().screen instanceof MoveHudScreen))
+            if (dev.purplepad.PurplePadClient.hudEnabled() && !(Minecraft.getInstance().gui.screen() instanceof MoveHudScreen))
                 element.extractRenderState(graphics, delta);
         });
     }

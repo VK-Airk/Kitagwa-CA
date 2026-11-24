@@ -12,7 +12,7 @@ final class KuudraScreen extends Screen {
     KuudraScreen(Screen parent){super(Component.literal("Kuudra"));this.parent=parent;}
     @Override protected void init(){
         int size=Math.max(1,Math.min(width-24,height-80));
-        var credits=addRenderableWidget(new net.minecraft.client.gui.components.Button((width-size)/2,44,size,size,Component.literal("Artwork credits"),b->minecraft.setScreen(new CreditsScreen(this,FanArt.KUUDRA)),label->label.get()){
+        var credits=addRenderableWidget(new net.minecraft.client.gui.components.Button((width-size)/2,44,size,size,Component.literal("Artwork credits"),b->minecraft.gui.setScreen(new CreditsScreen(this,FanArt.KUUDRA)),label->label.get()){
             @Override protected void extractContents(GuiGraphicsExtractor g,int mx,int my,float tick){
                 FanArt.KUUDRA.draw(g,getX(),getY(),getWidth(),getHeight());
             }
@@ -29,5 +29,5 @@ final class KuudraScreen extends Screen {
         super.extractRenderState(g,x,y,t);
     }
     @Override public boolean isPauseScreen(){return false;}
-    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
 }

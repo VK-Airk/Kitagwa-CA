@@ -23,6 +23,6 @@ final class CreditsScreen extends Screen {
         g.centeredText(font,"Original wheel animation and final drop reveal",width/2,height-37,KcaTheme.MUTED);
         super.extractRenderState(g,x,y,t);
     }
-    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return false;}
 }

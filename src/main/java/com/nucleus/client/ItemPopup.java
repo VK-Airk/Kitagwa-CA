@@ -11,7 +11,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
-import net.minecraft.client.renderer.RenderBuffers;
+
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
@@ -136,7 +136,7 @@ public final class ItemPopup {
 	/** Called from the GameRenderer hook after the GUI pass. Zero cost idle. */
 	public static void render(ProjectionMatrixBuffer hud3dProjectionMatrixBuffer, Projection hudProjection,
 		SubmitNodeStorage submitNodeStorage, DeltaTracker deltaTracker,
-		FeatureRenderDispatcher featureRenderDispatcher, RenderBuffers renderBuffers) {
+		FeatureRenderDispatcher featureRenderDispatcher) {
 		ItemStack s = stack;
 		int left = ticksLeft;
 		int total = totalTicks;
@@ -149,7 +149,7 @@ public final class ItemPopup {
 		}
 		GpuTexture depthTexture;
 		try {
-			depthTexture = minecraft.getMainRenderTarget().getDepthTexture();
+			depthTexture = minecraft.gameRenderer.mainRenderTarget().getDepthTexture();
 		} catch (Exception ignored) {
 			return;
 		}
@@ -162,8 +162,8 @@ public final class ItemPopup {
 			RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(depthTexture, 1D);
 			renderItem(minecraft, hudProjection, s, total - left, total, submitNodeStorage,
 				deltaTracker.getGameTimeDeltaPartialTick(true));
-			featureRenderDispatcher.renderAllFeatures();
-			renderBuffers.bufferSource().endBatch();
+			featureRenderDispatcher.renderAllFeatures(submitNodeStorage);
+			
 		} catch (Exception e) {
 			NucleusMod.LOGGER.warn("Item popup render failed: {}", e.toString());
 			stack = null;
@@ -250,7 +250,7 @@ public final class ItemPopup {
 			: Mth.abs(Mth.sin(halfRotations)))));
 		poseStack.mulPose(Axis.XP.rotationDegrees(6f * Mth.cos(progress * 8f)));
 		poseStack.mulPose(Axis.ZP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-		minecraft.gameRenderer.getLighting().setupFor(Lighting.Entry.ITEMS_3D);
+		minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
 		ItemStackRenderState state = new ItemStackRenderState();
 		minecraft.getItemModelResolver().updateForTopItem(state, s, ItemDisplayContext.FIXED, minecraft.level, null, 0);
 		int light = 15728880;

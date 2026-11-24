@@ -26,11 +26,11 @@ $variant = ($selected -join '-').ToLowerInvariant()
 if ($Destination) {
     $outputJar = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Destination)
 } elseif ($WithoutKuudra -and $selected.Count -eq 4) {
-    $outputJar = Join-Path $buildDir 'KCA-without-Kuudra-mc26.1.2.jar'
+    $outputJar = Join-Path $buildDir 'KCA-without-Kuudra-mc26.2.jar'
 } elseif ($custom) {
-    $outputJar = Join-Path $buildDir "KCA-$($manifest.version)-$variant-mc26.1.2.jar"
+    $outputJar = Join-Path $buildDir "KCA-$($manifest.version)-$variant-mc26.2.jar"
 } else {
-    $outputJar = Join-Path $buildDir 'KCA-mc26.1.2.jar'
+    $outputJar = Join-Path $buildDir 'KCA-mc26.2.jar'
 }
 if ([IO.Path]::GetExtension($outputJar) -ne '.jar') { throw 'Choose a .jar output file.' }
 $outputDir = [IO.Path]::GetDirectoryName($outputJar)
@@ -43,15 +43,16 @@ try {
 foreach ($path in @($buildDir, $depsDir, $classesDir, $testsDir)) {
     New-Item -ItemType Directory -Force -Path $path | Out-Null
 }
+if (-not $MinecraftJar -and (Test-Path (Join-Path $buildDir 'inputs/minecraft-26.2.jar'))) { $MinecraftJar = Join-Path $buildDir 'inputs/minecraft-26.2.jar' }
 if (-not $MinecraftJar) {
-    $MinecraftJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot 'metadata/versions') -Recurse -Filter '26.1.2-*.jar' |
+    $MinecraftJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot 'metadata/versions') -Recurse -Filter '26.2-*.jar' |
         Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
 if (-not $FabricApiJar) {
-    $FabricApiJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot '.minecraft/mods/26.1.2 Fabric') -Filter 'fabric-api-*+26.1.2.jar' |
+    $FabricApiJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot 'metadata/packages/mods/modrinth/P7dR8mSH') -Recurse -Filter 'fabric-api-*+26.2.jar' |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
-if (-not $MinecraftJar -or -not $FabricApiJar) { throw 'Minecraft 26.1.2 and Fabric API JARs are required.' }
+if (-not $MinecraftJar -or -not $FabricApiJar) { throw 'Minecraft 26.2 and Fabric API JARs are required.' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $api = [System.IO.Compression.ZipFile]::OpenRead($FabricApiJar)
 try {
@@ -72,10 +73,10 @@ $libraries = @(Get-ChildItem -LiteralPath (Join-Path $OneClientRoot 'metadata/li
     Select-Object -ExpandProperty FullName)
 $apiLibraries = @(Get-ChildItem -LiteralPath $depsDir -Filter '*.jar' | Select-Object -ExpandProperty FullName)
 if (-not $ModMenuJar) {
-    $ModMenuJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot '.minecraft/mods/26.1.2 Fabric') -Filter 'modmenu-*.jar' |
+    $ModMenuJar = Get-ChildItem -LiteralPath (Join-Path $OneClientRoot 'metadata/packages/mods/modrinth/mOgUt4GM') -Recurse -Filter 'modmenu-20*.jar' |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
-if (-not $ModMenuJar) { throw 'Mod Menu for Minecraft 26.1.2 is required to compile the optional menu integration.' }
+if (-not $ModMenuJar) { throw 'Mod Menu for Minecraft 26.2 is required to compile the optional menu integration.' }
 $classpath = (@($MinecraftJar, $ModMenuJar, (Join-Path $projectRoot 'src/main/resources/META-INF/jars/jlayer-1.0.1.4.jar')) + $libraries + $apiLibraries) -join [IO.Path]::PathSeparator
 $sources = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src/main/java') -Recurse -Filter '*.java' |
     Select-Object -ExpandProperty FullName)

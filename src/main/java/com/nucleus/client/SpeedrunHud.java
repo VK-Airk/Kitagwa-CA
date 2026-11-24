@@ -32,7 +32,7 @@ public final class SpeedrunHud implements HudElement {
 		if (client.level == null || client.player == null) {
 			return;
 		}
-		if (client.screen instanceof MoveHudScreen || client.screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen) {
+		if (client.gui.screen() instanceof MoveHudScreen || client.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen) {
 			return;
 		}
         drawTimer(gfx,NucleusMod.SPEEDRUN.speedTimerX,NucleusMod.SPEEDRUN.speedTimerY,timerScale());
@@ -110,7 +110,7 @@ public final class SpeedrunHud implements HudElement {
         var cfg=NucleusMod.CONFIG;
         if(!cfg.kcaEnabled || !cfg.showGameplayHud || !cfg.showCrystalChecklist ||
             SpeedrunManager.state()==SpeedrunManager.State.IDLE || !HollowsDetector.isInCrystalHollows() ||
-            JackpotAnimation.cinematicActive() || Minecraft.getInstance().screen instanceof MoveHudScreen)return;
+            JackpotAnimation.cinematicActive() || Minecraft.getInstance().gui.screen() instanceof MoveHudScreen)return;
         var client=Minecraft.getInstance();
         float scale=cfg.crystalHudScale;
         String line=cfg.crystalLayout != com.nucleus.NucleusConfig.CrystalLayout.COMPACT?null:CrystalTracker.checklist();
@@ -124,7 +124,7 @@ public final class SpeedrunHud implements HudElement {
     }
     static void drawToolSets(GuiGraphicsExtractor g) {
         var cfg = NucleusMod.CONFIG;
-        var screen = Minecraft.getInstance().screen;
+        var screen = Minecraft.getInstance().gui.screen();
         if (!cfg.kcaEnabled || !cfg.showGameplayHud || !cfg.showToolSets || !HollowsDetector.isInCrystalHollows()
             || JackpotAnimation.cinematicActive() || screen instanceof MoveHudScreen
             || screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen) return;
@@ -135,7 +135,7 @@ public final class SpeedrunHud implements HudElement {
     }
     static void drawGoal(GuiGraphicsExtractor gfx){
         var cfg=NucleusMod.CONFIG;
-        if(!cfg.kcaEnabled || !cfg.showGameplayHud || !cfg.showRunGoal || !HollowsDetector.isInCrystalHollows() || JackpotAnimation.cinematicActive() || Minecraft.getInstance().screen instanceof MoveHudScreen)return;
+        if(!cfg.kcaEnabled || !cfg.showGameplayHud || !cfg.showRunGoal || !HollowsDetector.isInCrystalHollows() || JackpotAnimation.cinematicActive() || Minecraft.getInstance().gui.screen() instanceof MoveHudScreen)return;
         var store=NucleusMod.SPEEDRUN;
         drawHudLine(gfx,store.goalLabel(),cfg.runGoalX,cfg.runGoalY,cfg.runGoalScale,store.displayedRuns()>=store.runGoal?0xFF88EE99:0xFFFFD6AE);
     }

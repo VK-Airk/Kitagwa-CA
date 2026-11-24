@@ -175,7 +175,7 @@ public class RunHistoryScreen extends Screen {
 		}
 		int cx = this.width / 2;
         tabs(this::addRenderableWidget,cx,panelX2()-panelX1()-8,personalBest?1:2,page->{
-            if(page==0){minecraft.setScreen(parent);return;}
+            if(page==0){minecraft.gui.setScreen(parent);return;}
             personalBest=page==1;selected=-1;scroll=0;rebuildWidgets();
         });
         if (!personalBest && selected < 0) {
@@ -214,7 +214,7 @@ public class RunHistoryScreen extends Screen {
 					rebuildWidgets();
 				} else {
 					Minecraft client = Minecraft.getInstance();
-					client.setScreen(parent);
+					client.gui.setScreen(parent);
 				}
 			}).pos(panelX2() - 108, this.height - 28).size(100, 20).accent(0xB8B8C8).build());
 	}
@@ -473,7 +473,7 @@ public class RunHistoryScreen extends Screen {
 		}
 	}
 
-	@Override public void onClose(){if(selected>=0){selected=-1;scroll=0;rebuildWidgets();}else minecraft.setScreen(parent);}
+	@Override public void onClose(){if(selected>=0){selected=-1;scroll=0;rebuildWidgets();}else minecraft.gui.setScreen(parent);}
 
 	@Override
 	public boolean isPauseScreen() {

@@ -35,7 +35,7 @@ public final class PurplePadClient implements ClientModInitializer {
     private static int previewTicks;
     private static boolean openSettings, openMain;
     static void openTimer(net.minecraft.client.gui.screens.Screen menu) {
-        Minecraft.getInstance().setScreen(new TimerHudEditor(menu,config.copy()));
+        Minecraft.getInstance().gui.setScreen(new TimerHudEditor(menu,config.copy()));
     }
 
     static {
@@ -67,8 +67,8 @@ public final class PurplePadClient implements ClientModInitializer {
                     KcaMenu.open(KcaMenu.Page.ROOT,"set " + StringArgumentType.getString(c,"query")))));
             root.then(literal("search").executes(c->KcaMenu.open(KcaMenu.Page.ROOT,"")).then(argument("setting",StringArgumentType.greedyString()).executes(c->KcaMenu.open(KcaMenu.Page.ROOT,StringArgumentType.getString(c,"setting")))))
             .then(argument("setting",StringArgumentType.greedyString()).executes(c->KcaMenu.open(KcaMenu.Page.ROOT,StringArgumentType.getString(c,"setting"))));
-            if(KcaEdition.CHAT)root.then(literal("shortcuts").executes(c->{var mc=Minecraft.getInstance();mc.schedule(()->mc.setScreen(KcaMenu.chatScreen(new KcaMenu(KcaMenu.Page.ROOT),true)));return 1;}))
-            .then(literal("chat").executes(c->{var mc=Minecraft.getInstance();mc.schedule(()->mc.setScreen(KcaMenu.chatScreen(new KcaMenu(KcaMenu.Page.ROOT),false)));return 1;}));
+            if(KcaEdition.CHAT)root.then(literal("shortcuts").executes(c->{var mc=Minecraft.getInstance();mc.schedule(()->mc.gui.setScreen(KcaMenu.chatScreen(new KcaMenu(KcaMenu.Page.ROOT),true)));return 1;}))
+            .then(literal("chat").executes(c->{var mc=Minecraft.getInstance();mc.schedule(()->mc.gui.setScreen(KcaMenu.chatScreen(new KcaMenu(KcaMenu.Page.ROOT),false)));return 1;}));
             root.then(literal("reload").executes(c->{try{if(KcaEdition.DUNGEONS){config=TimerConfig.load(configPath);RunStats.reload();}com.nucleus.NucleusMod.CONFIG.load();if(KcaEdition.NUCLEUS || KcaEdition.GENERAL)com.nucleus.NucleusMod.SPEEDRUN.load();if(KcaEdition.CHAT)Shortcuts.load();if(!enabled())disableRuntime();return reply(c.getSource(),"KCA settings reloaded.");}catch(Exception e){return reply(c.getSource(),"KCA reload failed: "+e.getMessage());}}));
             if(KcaEdition.HAS_HUD)root.then(literal("hud").executes(c->{com.nucleus.client.MoveHudScreen.open(null);return 1;}));
             root.then(literal("help").executes(c->reply(c.getSource(),
@@ -90,7 +90,7 @@ public final class PurplePadClient implements ClientModInitializer {
                 .then(literal("report").executes(test(c -> reply(c.getSource(),String.join("\n",RunStats.testReport())))))
                 .then(literal("timer").executes(test(PurplePadClient::previewTimer)))
                 .then(literal("secrets").executes(test(c -> {
-                    Minecraft.getInstance().schedule(() -> Minecraft.getInstance().setScreen(new RunHudEditor(null)));
+                    Minecraft.getInstance().schedule(() -> Minecraft.getInstance().gui.setScreen(new RunHudEditor(null)));
                     return 1;
                 })));
             if(KcaEdition.HAS_HUD){
@@ -104,7 +104,7 @@ public final class PurplePadClient implements ClientModInitializer {
                 .executes(c -> placeWaypoints(c.getSource(), com.nucleus.NucleusMod.CONFIG.useReferenceOffsets)))));
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if(openMain){openMain=false;client.setScreen(new KcaMenu(KcaMenu.Page.ROOT));}
+            if(openMain){openMain=false;client.gui.setScreen(new KcaMenu(KcaMenu.Page.ROOT));}
         });
         if(!KcaEdition.DUNGEONS)return;
         configPath = FabricLoader.getInstance().getConfigDir().resolve("purple-pad-timer.json");
@@ -118,7 +118,7 @@ public final class PurplePadClient implements ClientModInitializer {
             if (previewTicks > 0) previewTicks--;
             if (openSettings) {
                 openSettings = false;
-                client.setScreen(new TimerSettingsScreen(config.copy()));
+                client.gui.setScreen(new TimerSettingsScreen(config.copy()));
             }
         });
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
@@ -126,8 +126,8 @@ public final class PurplePadClient implements ClientModInitializer {
             int ticks = TIMER.remaining();
             if (ticks == 0) ticks = previewTicks;
             Minecraft client = Minecraft.getInstance();
-            if (!hudEnabled() || !config.enabled || ticks <= 0 || client.level == null || client.options.hideGui
-                    || client.screen instanceof com.nucleus.client.MoveHudScreen || client.screen instanceof GuiSettingsScreen || client.screen instanceof TimerSettingsScreen || client.screen instanceof TimerHudEditor) return;
+            if (!hudEnabled() || !config.enabled || ticks <= 0 || client.level == null || client.gui.hud.isHidden()
+                    || client.gui.screen() instanceof com.nucleus.client.MoveHudScreen || client.gui.screen() instanceof GuiSettingsScreen || client.gui.screen() instanceof TimerSettingsScreen || client.gui.screen() instanceof TimerHudEditor) return;
             var bounds = TimerHudRenderer.bounds(client.font, config, graphics.guiWidth(), graphics.guiHeight());
             TimerHudRenderer.draw(graphics, client.font, config, LABELS[ticks], bounds.x(), bounds.y(), config.scale);
         });
@@ -183,7 +183,7 @@ public final class PurplePadClient implements ClientModInitializer {
     public static boolean hudEnabled() { return hudVisible(false); }
     public static boolean hudVisible(boolean preview) {
         Minecraft client = Minecraft.getInstance();
-        if (client.screen == null && client.options.keyPlayerList.isDown()) return false;
+        if (client.gui.screen() == null && client.options.keyPlayerList.isDown()) return false;
         return preview || (enabled() && com.nucleus.NucleusMod.CONFIG.showGameplayHud);
     }
     public static boolean testsEnabled(){return enabled() && com.nucleus.NucleusMod.CONFIG.testCommands;}
@@ -221,7 +221,7 @@ public final class PurplePadClient implements ClientModInitializer {
         };
     }
     private static int previewTimer(com.mojang.brigadier.context.CommandContext<FabricClientCommandSource> ctx) {
-        if (!hudEnabled() || !config.enabled || Minecraft.getInstance().options.hideGui)
+        if (!hudEnabled() || !config.enabled || Minecraft.getInstance().gui.hud.isHidden())
             return reply(ctx.getSource(),"For the countdown preview, enable Game HUD in General, use /purplepad on, and show the Minecraft HUD (F1).");
         previewTicks=TimerState.DURATION;
         return reply(ctx.getSource(),"Previewing the Purple Pad Timer for 2.8 seconds.");

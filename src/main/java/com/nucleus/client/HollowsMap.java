@@ -38,7 +38,7 @@ final class HollowsMap {
                 case GOBLIN_QUEENS_DEN -> Items.GOLDEN_HELMET;
                 case LOST_PRECURSOR_CITY -> Items.COMPARATOR;
                 case KHAZAD_DUM -> Items.MAGMA_CREAM;
-                case FAIRY_GROTTO -> Items.PINK_DYE;
+                case FAIRY_GROTTO -> Items.DYE.pick(net.minecraft.world.item.DyeColor.PINK);
                 case DRAGONS_LAIR -> Items.DRAGON_EGG;
                 case KING_YOLKAR -> Items.EGG;
                 case CORLEONE -> Items.IRON_SWORD;
@@ -187,7 +187,7 @@ final class HollowsMap {
         var cfg=NucleusMod.CONFIG;
         if(!cfg.kcaEnabled || !cfg.hollowsMap || !cfg.showGameplayHud || world==null) return;
         var mc=Minecraft.getInstance();
-        if(world!=mc.level || mc.player==null || !HollowsDetector.isInCrystalHollows() || mc.screen instanceof MoveHudScreen || JackpotAnimation.cinematicActive())return;
+        if(world!=mc.level || mc.player==null || !HollowsDetector.isInCrystalHollows() || mc.gui.screen() instanceof MoveHudScreen || JackpotAnimation.cinematicActive())return;
         float scale=cfg.hollowsMapScale;
         int x=Math.clamp(cfg.hollowsMapX,0,Math.max(0,g.guiWidth()-(int)Math.ceil(SIZE*scale)));
         int y=Math.clamp(cfg.hollowsMapY,0,Math.max(0,g.guiHeight()-(int)Math.ceil(height(false)*scale)));

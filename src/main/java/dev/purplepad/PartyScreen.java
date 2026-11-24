@@ -91,7 +91,7 @@ final class PartyScreen extends Screen {
     }
     private void tester(){
         if(!NucleusMod.CONFIG.testCommands){
-            button("General settings",left,95,w,()->minecraft.setScreen(new KcaMenu(KcaMenu.Page.GLOBAL,this)));
+            button("General settings",left,95,w,()->minecraft.gui.setScreen(new KcaMenu(KcaMenu.Page.GLOBAL,this)));
             return;
         }
         var box=input("Party command, chat line, or /shortcut",left,84,w,sample,512);
@@ -210,6 +210,6 @@ final class PartyScreen extends Screen {
         }
         super.extractRenderState(g,x,y,t);
     }
-    @Override public void onClose(){if(tab==1&&!saveRouting())return;if(editing){editing=false;recording=false;error="";rebuildWidgets();}else if(detail!=null){detail=null;rebuildWidgets();}else minecraft.setScreen(parent);}
+    @Override public void onClose(){if(tab==1&&!saveRouting())return;if(editing){editing=false;recording=false;error="";rebuildWidgets();}else if(detail!=null){detail=null;rebuildWidgets();}else minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return false;}
 }

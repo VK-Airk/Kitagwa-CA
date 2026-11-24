@@ -44,7 +44,7 @@ $list.Add_ItemCheck({
 })
 function Get-JarName([string[]]$BranchNames) {
     $suffix = if ($BranchNames.Count -eq $names.Count) { 'full' } else { ($BranchNames -join '-').ToLowerInvariant() }
-    "KCA-$version-$suffix-mc26.1.2.jar"
+    "KCA-$version-$suffix-mc26.2.jar"
 }
 try {
     $choice = $form.ShowDialog()

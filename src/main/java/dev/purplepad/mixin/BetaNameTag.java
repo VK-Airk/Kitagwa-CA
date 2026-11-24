@@ -22,6 +22,6 @@ public class BetaNameTag {
         if(level==null || !(level.getEntity(state.id) instanceof Player player) || !BetaBadges.listed(player))return;
         double height=state.scoreText==null?0.27:0.54;
         collector.submitNameTag(pose,state.nameTagAttachment.add(0,height,0),state.showExtraEars?-10:0,BetaBadges.LABEL,
-            !state.isDiscrete,state.lightCoords,state.distanceToCameraSq,camera);
+            !state.isDiscrete,state.lightCoords,camera);
     }
 }

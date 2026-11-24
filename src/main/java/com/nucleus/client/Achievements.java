@@ -688,9 +688,9 @@ public final class Achievements {
 			if (client == null || client.gui == null || !KcaChat.allowed()) {
 				return;
 			}
-			client.gui.setTimes(3, 70, 20);
-			client.gui.setTitle(titleComponent(e));
-			client.gui.setSubtitle(Component.literal(e.desc()));
+			client.gui.hud.setTimes(3, 70, 20);
+			client.gui.hud.setTitle(titleComponent(e));
+			client.gui.hud.setSubtitle(Component.literal(e.desc()));
 		} catch (Exception ignored) {
 		}
 	}
@@ -1262,7 +1262,7 @@ public final class Achievements {
 			return -1;
 		}
 		try {
-			if (!(client.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> gs)) {
+			if (!(client.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> gs)) {
 				return -1;
 			}
 			long official = -1;

@@ -65,7 +65,7 @@ public final class BalPetDrop implements HudElement {
 			return;
 		}
 		Minecraft client = Minecraft.getInstance();
-		if (client.level == null || client.player == null || client.screen instanceof MoveHudScreen) {
+		if (client.level == null || client.player == null || client.gui.screen() instanceof MoveHudScreen) {
 			return;
 		}
 		try {

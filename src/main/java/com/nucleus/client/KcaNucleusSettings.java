@@ -599,7 +599,7 @@ public final class KcaNucleusSettings extends Screen {
     private void addSubtabs(){
         if(currentTab==Tab.SPEEDRUNS){
             RunHistoryScreen.tabs(this::addRenderableWidget,contentCx(),contentX2-contentX1-8,0,i->{
-                if(i>0){saveFields();minecraft.setScreen(new RunHistoryScreen(this,i==1));}
+                if(i>0){saveFields();minecraft.gui.setScreen(new RunHistoryScreen(this,i==1));}
             });return;
         }
         if(currentTab==Tab.MISC){
@@ -673,7 +673,7 @@ public final class KcaNucleusSettings extends Screen {
             addRenderableWidget(NucleusUi.NButton.create(Component.literal("Reset achievements"),b->ConfirmResetScreen.open(this,ConfirmResetScreen.Mode.ACHIEVEMENTS)).pos(x,y).size(cell,20).build());
         }else{
             if(gui){
-                addRenderableWidget(NucleusUi.NButton.create(Component.literal("GUI settings"),b->{saveFields();minecraft.setScreen(new dev.purplepad.GuiSettingsScreen(this,dev.purplepad.GuiSettingsScreen.Element.NUCLEUS));}).pos(x,y).size(cell,20).build());
+                addRenderableWidget(NucleusUi.NButton.create(Component.literal("GUI settings"),b->{saveFields();minecraft.gui.setScreen(new dev.purplepad.GuiSettingsScreen(this,dev.purplepad.GuiSettingsScreen.Element.NUCLEUS));}).pos(x,y).size(cell,20).build());
                 x+=cell+4;
             }
             addRenderableWidget(NucleusUi.NButton.create(Component.literal("Spreadsheet"),b->{saveFields();openSheet(this);}).pos(x,y).size(cell,20).build());
@@ -1231,7 +1231,7 @@ public final class KcaNucleusSettings extends Screen {
         y=option(cx,y,"Crystal Hollows map",NucleusMod.CONFIG.hollowsMap,v->NucleusMod.CONFIG.hollowsMap=v,
             "Show regions, your position and known landmarks. Learns from visits, named coordinates in chat and available Skyblocker pins. Move or resize it in the HUD editor.");
         var mapSettings=NucleusUi.NButton.create(Component.literal("Map layers and landmarks"), b ->
-            minecraft.setScreen(new HollowsMapSettings(this))).pos(cx-150,y).size(300,20).build();
+            minecraft.gui.setScreen(new HollowsMapSettings(this))).pos(cx-150,y).size(300,20).build();
         addRenderableWidget(mapSettings);
         y+=22;
         y=option(cx,y,"Stash HUD",NucleusMod.CONFIG.showStash,v->NucleusMod.CONFIG.showStash=v,
@@ -1651,7 +1651,7 @@ public final class KcaNucleusSettings extends Screen {
 		Button testButton = NucleusUi.NButton.create(Component.literal("Test animation"), btn -> {
 			// Out of the config first so the stage has the full screen.
 			saveFields();
-            minecraft.setScreen(null);
+            minecraft.gui.setScreen(null);
 			JackpotAnimation.DropType shown =
 				JackpotAnimation.startPreview(NucleusMod.CONFIG.jackpotPreview);
 			KcaChat.chat(Minecraft.getInstance(), Component.literal(
@@ -2374,7 +2374,7 @@ public final class KcaNucleusSettings extends Screen {
 			case "phoenix" -> vanilla(net.minecraft.world.item.Items.TOTEM_OF_UNDYING);
 			case "decorator" -> vanilla(net.minecraft.world.item.Items.PAINTING);
 			case "seasons" -> vanilla(net.minecraft.world.item.Items.SNOWBALL);
-			case "nightshift" -> vanilla(net.minecraft.world.item.Items.BLACK_BED);
+			case "nightshift" -> vanilla(net.minecraft.world.item.Items.BED.pick(net.minecraft.world.item.DyeColor.BLACK));
 			case "ouch" -> alloyIcon();
 			default -> {
 				if (id.startsWith("bal_") || id.equals("fistbal")) {
@@ -2935,7 +2935,7 @@ public final class KcaNucleusSettings extends Screen {
 		return fallback;
 	}
 
-	private void saveAndClose() {saveFields();Minecraft.getInstance().setScreen(parent);}
+	private void saveAndClose() {saveFields();Minecraft.getInstance().gui.setScreen(parent);}
     private void saveFields() {
 		try {
 			if (outlineBox != null) {

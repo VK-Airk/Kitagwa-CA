@@ -51,6 +51,6 @@ final class SecretMessageScreen extends Screen {
         }
         super.extractRenderState(g,x,y,t);
     }
-    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return false;}
 }

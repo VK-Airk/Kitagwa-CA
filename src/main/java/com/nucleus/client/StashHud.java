@@ -74,7 +74,7 @@ final class StashHud {
     static void draw(GuiGraphicsExtractor g){
         var cfg=NucleusMod.CONFIG;
         if(!cfg.showStash || !reported || !inArea() || JackpotAnimation.cinematicActive()
-            || Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen)return;
+            || Minecraft.getInstance().gui.screen() instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen)return;
         String text=hudText();
         int w=Minecraft.getInstance().font.width(text);
         int x=Math.clamp(cfg.stashX,3,Math.max(3,g.guiWidth()-3-(int)Math.ceil(w*cfg.stashScale)));

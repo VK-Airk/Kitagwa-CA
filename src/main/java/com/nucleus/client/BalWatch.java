@@ -5,7 +5,7 @@ import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.MagmaCube;
+import net.minecraft.world.entity.monster.cubemob.MagmaCube;
 import net.minecraft.world.phys.Vec3;
 
 import com.nucleus.NucleusMod;

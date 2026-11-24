@@ -42,8 +42,8 @@ public final class TimerHudEditor extends Screen {
             "Done", KcaTheme.PETAL, b -> {
                 if(parent instanceof TimerSettingsScreen settings) settings.acceptPlacement(draft);
                 else try { PurplePadClient.applySettings(draft); }
-                catch(java.io.IOException ex){minecraft.gui.getChat().addClientSystemMessage(Component.literal("Could not save timer placement."));return;}
-                minecraft.setScreen(parent);
+                catch(java.io.IOException ex){minecraft.gui.hud.getChat().addClientSystemMessage(Component.literal("Could not save timer placement."));return;}
+                minecraft.gui.setScreen(parent);
             }));
     }
 
@@ -125,7 +125,7 @@ public final class TimerHudEditor extends Screen {
         return super.keyPressed(event);
     }
 
-    @Override public void onClose() { minecraft.setScreen(parent); }
+    @Override public void onClose() { minecraft.gui.setScreen(parent); }
     @Override public boolean isPauseScreen() { return false; }
 
     @Override public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {

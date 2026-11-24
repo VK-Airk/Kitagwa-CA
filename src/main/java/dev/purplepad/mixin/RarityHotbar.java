@@ -6,10 +6,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-@Mixin(Gui.class)
+@Mixin(Hud.class)
 abstract class RarityHotbar {
     @Inject(method="extractSlot",at=@At("HEAD"))
     private void kca$background(GuiGraphicsExtractor g,int x,int y,DeltaTracker delta,Player player,ItemStack stack,int seed,CallbackInfo ci){

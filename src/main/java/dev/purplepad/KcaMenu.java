@@ -69,7 +69,7 @@ public final class KcaMenu extends Screen {
     private static Screen nucleus(KcaNucleusSettings.Section section,Screen parent){return new KcaNucleusSettings(section,parent);}
     public static void openNucleus(){
         var mc=Minecraft.getInstance();
-        mc.schedule(()->mc.setScreen(nucleus(KcaNucleusSettings.allSections().getFirst(),new KcaMenu(Page.ROOT))));
+        mc.schedule(()->mc.gui.setScreen(nucleus(KcaNucleusSettings.allSections().getFirst(),new KcaMenu(Page.ROOT))));
     }
     private static Screen kuudraScreen(Screen parent){
         if(KcaEdition.KUUDRA)return new KuudraScreen(parent);
@@ -81,11 +81,11 @@ public final class KcaMenu extends Screen {
     }
     static int openKuudra(){
         if(!KcaEdition.KUUDRA)return 0;
-        var mc=Minecraft.getInstance();mc.schedule(()->mc.setScreen(kuudraScreen(new KcaMenu(Page.ROOT))));return 1;
+        var mc=Minecraft.getInstance();mc.schedule(()->mc.gui.setScreen(kuudraScreen(new KcaMenu(Page.ROOT))));return 1;
     }
     static int openWaypointSettings(){
         var mc=Minecraft.getInstance();
-        mc.schedule(()->mc.setScreen(new KcaNucleusSettings(
+        mc.schedule(()->mc.gui.setScreen(new KcaNucleusSettings(
             KcaNucleusSettings.sections(KcaNucleusSettings.Tab.WAYPOINTS).getFirst(),
             new KcaMenu(Page.ROOT)).focusSetting("Waypoint mode")));
         return 1;
@@ -94,10 +94,10 @@ public final class KcaMenu extends Screen {
         var mc=Minecraft.getInstance();mc.schedule(()->{
             var screen=new KcaMenu(page,page==Page.ROOT?null:new KcaMenu(Page.ROOT));
             if(query!=null){screen.query=query.trim();screen.focusSearch=true;}
-            mc.setScreen(screen);
+            mc.gui.setScreen(screen);
         });return 1;
     }
-    private void show(Screen screen){minecraft.setScreen(screen);}
+    private void show(Screen screen){minecraft.gui.setScreen(screen);}
     public static void generalTabs(java.util.function.Consumer<com.nucleus.client.NucleusUi.NButton> add,int cx,int available,int selected,java.util.function.IntConsumer change){
         int w=(Math.min(368,available)-12)/4,left=cx-(4*w+12)/2;
         String[] labels={"Settings","Appearance","Achievements","Item rarity"};
@@ -105,7 +105,7 @@ public final class KcaMenu extends Screen {
     }
     public static void generalTabFrom(Screen parent,int tab){
         var screen=parent instanceof KcaMenu menu && menu.page==Page.GLOBAL?menu:new KcaMenu(Page.GLOBAL,parent);
-        screen.appearance=tab==1;screen.rarity=tab==3;Minecraft.getInstance().setScreen(screen);
+        screen.appearance=tab==1;screen.rarity=tab==3;Minecraft.getInstance().gui.setScreen(screen);
     }
     private void general(boolean style){var screen=new KcaMenu(Page.GLOBAL,this);screen.appearance=style;show(screen);}
     private void dungeon(boolean counter){var screen=new KcaMenu(Page.DUNGEONS,this);screen.secrets=counter;show(screen);}
@@ -186,14 +186,14 @@ public final class KcaMenu extends Screen {
             addRenderableWidget(KcaTheme.tab("Records",left+12+tabW*2,49,tabW,records,accent(),()->{records=true;rebuildWidgets();}));
             if(records){
                 button("Scan account PBs",x,y,w,accent(),()->{
-                    minecraft.setScreen(null);
-                    com.nucleus.client.DungeonRecords.scan(minecraft.gui.getChat()::addClientSystemMessage);
+                    minecraft.gui.setScreen(null);
+                    com.nucleus.client.DungeonRecords.scan(minecraft.gui.hud.getChat()::addClientSystemMessage);
                 });
                 String floor=recordFloor==0?"E":recordFloor<=7?"F"+recordFloor:"M"+(recordFloor-7);
                 button("Split floor - "+floor,x,y+22,w,accent(),()->{recordFloor=(recordFloor+1)%15;rebuildWidgets();});
                 button("Show best splits",x,y+44,w,accent(),()->{
-                    minecraft.setScreen(null);
-                    com.nucleus.client.DungeonRecords.best(floor,minecraft.gui.getChat()::addClientSystemMessage);
+                    minecraft.gui.setScreen(null);
+                    com.nucleus.client.DungeonRecords.best(floor,minecraft.gui.hud.getChat()::addClientSystemMessage);
                 }).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("Fastest segments from runs KCA observed on this floor. Shows FishMod history if KCA has no records yet.")));
             }else if(secrets){
                 button(state("Display",RunStats.hud),x,y,w,accent(),()->{RunStats.options(!RunStats.hud,RunStats.chat);rebuildWidgets();});
@@ -314,7 +314,7 @@ public final class KcaMenu extends Screen {
     private void save(){NucleusMod.CONFIG.save();RunStats.displayStamp=-1;rebuildWidgets();}
     private void editTimer(Consumer<TimerConfig> edit){
         var cfg=PurplePadClient.timerConfig();edit.accept(cfg);
-        try{PurplePadClient.applySettings(cfg);}catch(java.io.IOException ex){minecraft.gui.getChat().addClientSystemMessage(Component.literal("Could not save timer settings."));}
+        try{PurplePadClient.applySettings(cfg);}catch(java.io.IOException ex){minecraft.gui.hud.getChat().addClientSystemMessage(Component.literal("Could not save timer settings."));}
         rebuildWidgets();
     }
     private void palette(String label,int value,int x,int y,int w,Consumer<Integer> set){
@@ -325,7 +325,7 @@ public final class KcaMenu extends Screen {
     private void textColor(int x,int y,int w,boolean secret){
         var cfg=NucleusMod.CONFIG;char code=secret?cfg.secretColor:cfg.roomColor;
         int i=Math.max(0,TEXT_CODES.indexOf(code));var formatting=net.minecraft.ChatFormatting.getByCode(TEXT_CODES.charAt(i));
-        button((secret?"Secrets":"Rooms")+" color - "+TEXT_NAMES[i],x,y,w,0xFF000000|formatting.getColor(),()->{
+        button((secret?"Secrets":"Rooms")+" color - "+TEXT_NAMES[i],x,y,w,0xFF000000|net.minecraft.network.chat.TextColor.fromLegacyFormat(formatting).getValue(),()->{
             char next=TEXT_CODES.charAt((i+1)%TEXT_CODES.length());
             if(secret)cfg.secretColor=next;else cfg.roomColor=next;save();
         });
@@ -362,7 +362,7 @@ public final class KcaMenu extends Screen {
             g.centeredText(font,branch==3?"Chat":getMessage().getString(),cx,y+32,accent);
         }
     }
-    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public void onClose(){minecraft.gui.setScreen(parent);}
     @Override public boolean isPauseScreen(){return false;}
     @Override public void extractBackground(GuiGraphicsExtractor g,int x,int y,float tick){KcaTheme.backdrop(g,width,height,page==Page.DUNGEONS?KcaTheme.Branch.DUNGEONS:KcaTheme.Branch.GENERAL);}
     // Compute the strokes on layout. A half-pixel overlap joins their rounded bends.

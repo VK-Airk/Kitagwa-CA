@@ -114,6 +114,6 @@ public final class GuiSettingsScreen extends Screen {
         if (!error.isEmpty()) g.centeredText(font,error,cx,top+150,KcaTheme.ROSE);
     }
 
-    @Override public void onClose() { minecraft.setScreen(parent); }
+    @Override public void onClose() { minecraft.gui.setScreen(parent); }
     @Override public boolean isPauseScreen() { return false; }
 }

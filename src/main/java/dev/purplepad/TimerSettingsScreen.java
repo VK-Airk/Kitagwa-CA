@@ -50,9 +50,9 @@ public final class TimerSettingsScreen extends Screen {
             b.setMessage(Component.literal(shadowLabel()));
         }));
         addRenderableWidget(new PixelButton(left + 12, top + 132, inner, 24, "Move & Resize", ORANGE,
-            b -> minecraft.setScreen(new TimerHudEditor(this, draft.copy()))));
+            b -> minecraft.gui.setScreen(new TimerHudEditor(this, draft.copy()))));
         addRenderableWidget(new PixelButton(left + 12, top + 158, inner, 20, "GUI settings", MAGENTA,
-            b -> minecraft.setScreen(new GuiSettingsScreen(this, GuiSettingsScreen.Element.TIMER, draft))));
+            b -> minecraft.gui.setScreen(new GuiSettingsScreen(this, GuiSettingsScreen.Element.TIMER, draft))));
         int buttonWidth = (inner - 16) / 3;
         addRenderableWidget(new PixelButton(left + 12, top + 184, buttonWidth, 20, "Defaults", MUTED, b -> {
             draft = new TimerConfig();
@@ -84,7 +84,7 @@ public final class TimerSettingsScreen extends Screen {
 
     @Override public void tick() { age++; }
     @Override public boolean isPauseScreen() { return false; }
-    @Override public void onClose() { minecraft.setScreen(parent); }
+    @Override public void onClose() { minecraft.gui.setScreen(parent); }
 
     // A simple dim layer avoids invoking Minecraft's expensive menu blur.
     @Override public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
