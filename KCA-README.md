@@ -20,7 +20,7 @@ KCA is a client-side Fabric mod for Minecraft 26.1.2. Open its skill tree with `
 
 ## Install
 
-1. Close Minecraft and put `KCA-1.11.0-mc26.1.2.jar` in your active 26.1.2 Fabric mods folder.
+1. Close Minecraft and put `KCA-1.13.7-mc26.1.2.jar` in your active 26.1.2 Fabric mods folder.
 2. Replace your previous KCA JAR. Move any standalone Purple Pad Timer or Mado Nucleus Utilities JAR out of the active folder. KCA uses the existing Nucleus, dungeon and timer settings. Other Noamm features still require Noamm. If you keep Noamm and see two dungeon reports, switch off one chat printer.
 3. Use Java 25+, Fabric Loader 0.19.5+, and Fabric API 0.155.3+ for 26.1.2. Mod Menu is optional.
 
