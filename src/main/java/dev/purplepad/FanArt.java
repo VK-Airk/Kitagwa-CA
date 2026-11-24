@@ -8,9 +8,14 @@ import net.minecraft.resources.Identifier;
 
 enum FanArt {
     SCHOOL("marin_credits",1545,1545,"Art by Meowfeis"), KUUDRA("kuudra",1280,1280,"Art by LuziusL474"),
-    HELMET("marin_helmet",2000,2925,"Art by Piniacotta (@piniacottaalt)"), PORTRAIT("marin_portrait",406,754,"Artist unconfirmed");
+    HELMET("marin_helmet",2000,2925,"Art by Piniacotta (@piniacottaalt)"), PORTRAIT("marin_portrait",406,754,"Artist unconfirmed"),
+    MARIN_SUNGLASSES("marin_sunglasses",1920,1383,"Art by Midnite Blue Draws"),
+    MARIN_BENCH("marin_bench",375,533,"Art by Arden"),
+    MARIN_SALUTE("marin_salute",1440,1800,"Art by Takko (@_takk00)"),
+    MARIN_LINE_ART("marin_line_art",1440,1800,"Art by Takko (@_takk00)"),
+    UNIFORM_PORTRAIT("uniform_portrait",387,516,"Art by @shirrori");
 
-    private static final List<FanArt> rotation=new ArrayList<>(List.of(SCHOOL, HELMET, PORTRAIT));
+    private static final List<FanArt> rotation = new ArrayList<>(java.util.EnumSet.complementOf(java.util.EnumSet.of(KUUDRA)));
     private static int index=rotation.size();
     private static FanArt previous;
     final Identifier texture;
