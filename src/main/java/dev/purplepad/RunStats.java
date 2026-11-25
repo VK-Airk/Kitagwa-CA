@@ -22,6 +22,11 @@ import java.time.Duration;
 public final class RunStats {
     enum Lowest { OFF, LOCAL, PARTY }
     static String lowestTemplate=ClearReport.DEFAULT_LOWEST;
+    static final String DEFAULT_KICK="{name} ranked lowest for {runs} runs (65% secrets, 35% rooms).";
+    static String kickTemplate=DEFAULT_KICK;
+    static String kickText(String template,String name){
+        return (template.isBlank()?DEFAULT_KICK:template).replace("{name}",name).replace("{runs}","4");
+    }
     static boolean suggestKick,suggestMage;
     private static long mortAt,bloodMs=-1;
     private static final Streak clearStreak=new Streak(),mageStreak=new Streak();
@@ -39,16 +44,20 @@ public final class RunStats {
         if(!PartyChat.playerName(name)||name.equalsIgnoreCase(mc.getUser().getName()))return;
         var action=Component.literal("[Kick "+name+"]").withStyle(style->style.withUnderlined(true)
             .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand("/party kick "+name)));
-        mc.gui.getChat().addClientSystemMessage(Component.literal("[KCA] "+reason+" ").append(action));
+        mc.gui.getChat().addClientSystemMessage(Component.literal("§d[KCA] §"+com.nucleus.NucleusMod.CONFIG.lowestColor+reason+" ").append(action));
     }
     static List<String> sampleLowest(String template){
-        return ClearReport.lowest(List.of(new ClearReport("Alex","Tank",3,2),new ClearReport("Sam","Archer",5,8),
-            new ClearReport("Robin","Mage",0,0)),template);
+        return ClearReport.lowest(sampleTeam(),template);
+    }
+    private static List<ClearReport> sampleTeam(){
+        return List.of(new ClearReport("Alex","Tank",3,2),new ClearReport("Sam","Archer",5,8),new ClearReport("Robin","Mage",0,0));
     }
     static Lowest lowest=Lowest.LOCAL;
     static boolean shareRows, muteBladeRecap;
     public static boolean hideBladeRecap(){return com.nucleus.NucleusMod.CONFIG.kcaEnabled&&muteBladeRecap;}
-    private static final Deque<String> outgoingReport=new ArrayDeque<>();
+    private record ReportLine(String text,boolean party,long delay,String kickTarget) {}
+    private static final Deque<ReportLine> outgoingReport=new ArrayDeque<>();
+    private static long lastReportDelivery;
     private static long nextReportSend;
     private static boolean tracking(){return hud||chat||suggestKick||suggestMage||lowest!=Lowest.OFF;}
     static boolean hud=true, chat=true, simple;
@@ -94,7 +103,7 @@ public final class RunStats {
     static final Path CONFIG=FabricLoader.getInstance().getConfigDir().resolve("kca-run-stats.properties");
     static final String START="[NPC] Mort: Here, I found this map when I first entered the dungeon.";
     static final Pattern TAB=Pattern.compile("^\\[\\d+\\]\\s+(?:(?:\\[[^]]+\\]|[^\\w\\s\\[\\]]+)\\s+)*(\\w{1,16})\\s+.*\\((Healer|Mage|Berserk|Archer|Tank|DEAD)(?: [^)]*)?\\)$",Pattern.CASE_INSENSITIVE);
-    static final Pattern COUNT=Pattern.compile("^(\\w{1,16}): ([\\d,]+)$");
+    static final Pattern COUNT=Pattern.compile("^(?:\\[[A-Za-z0-9+ -]{1,18}\\]\\s*)?[^\\p{L}\\p{N}_:>\\[\\]]*?([A-Za-z0-9_]{1,16})[^\\p{L}\\p{N}_:>\\[\\]]*:\\s*([0-9]{1,3}(?:,[0-9]{3}){1,3}|[0-9]{1,12})$");
     private static final Map<String,Player> party=new LinkedHashMap<>();
     private static final Map<String,SecretSamples> commandSamples=new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static byte[] lastMap;
@@ -129,11 +138,16 @@ public final class RunStats {
         String name=second?"Mage":Minecraft.getInstance().getUser().getName();
         return SecretMessage.format(template,name,second?2:3,second?0:2,second?"6":"9",second?1:0,compact,c.secretColor,c.roomColor);
     }
-    static List<String> testReport(){
-        var rows=new ArrayList<>(reportSample());
-        if(lowest!=Lowest.OFF)rows.addAll(ClearReport.lowest(List.of(
-            new ClearReport(Minecraft.getInstance().getUser().getName(),"Archer",5,9),new ClearReport("Mage","Mage",2,6))));
-        return rows;
+    static int previewReport(boolean withKick){
+        var config=com.nucleus.NucleusMod.CONFIG;
+        for(var player:sampleTeam()){
+            queueReport(SecretMessage.format(messageTemplate,player.name(),(int)player.rooms(),0,
+                Long.toString(player.secrets()),0,false,config.secretColor,config.roomColor),false,0);
+        }
+        if(withKick)queueReport("§"+com.nucleus.NucleusMod.CONFIG.lowestColor+kickText(kickTemplate,"Alex")+" [Kick Alex]",false,250_000_000L);
+        if(withKick || lowest!=Lowest.OFF)queueLowest(sampleLowest(lowestTemplate),false,withKick?0:250_000_000L);
+        sendNextReportLine(Minecraft.getInstance());
+        return 1;
     }
     static List<String> reportSample(){return List.of(sampleLine(messageTemplate,false,false),sampleLine(messageTemplate,true,false));}
     public static boolean acceptClearRow(Component row){
@@ -147,6 +161,7 @@ public final class RunStats {
     static void reload() {
         var props=new Properties();
         if(Files.exists(CONFIG)) try(var in=Files.newInputStream(CONFIG)){props.load(in);}catch(IOException ignored){}
+        kickTemplate=props.getProperty("kickTemplate",DEFAULT_KICK);
         lowestTemplate=props.getProperty("lowestTemplate",ClearReport.DEFAULT_LOWEST);
         suggestKick=Boolean.parseBoolean(props.getProperty("suggestKick","false"));
         suggestMage=Boolean.parseBoolean(props.getProperty("suggestMage","false"));
@@ -194,6 +209,7 @@ public final class RunStats {
         displayStamp=-1;
         var props=new Properties();props.setProperty("scale",""+scale);props.setProperty("hud",""+hud);props.setProperty("chat",""+chat);
         props.setProperty("suggestMage",Boolean.toString(suggestMage));
+        props.setProperty("kickTemplate",kickTemplate);
         props.setProperty("lowestTemplate",lowestTemplate);props.setProperty("suggestKick",Boolean.toString(suggestKick));
         props.setProperty("messageTemplate",messageTemplate);props.setProperty("lowest",lowest.name());props.setProperty("shareRows",""+shareRows);props.setProperty("muteBladeRecap",""+muteBladeRecap);
         props.setProperty("kcaBackdrop",""+kcaBackdrop);
@@ -205,9 +221,17 @@ public final class RunStats {
         var mc=Minecraft.getInstance();
         if(com.nucleus.NucleusMod.CONFIG.kcaEnabled){
             if(finishing)finishReport(mc,sameConnection);
-            if(!sameConnection)while(!outgoingReport.isEmpty())local(mc,outgoingReport.removeFirst());
-        }
-        if(!sameConnection){outgoingReport.clear();nextReportSend=0;}
+            if(!sameConnection && !outgoingReport.isEmpty()){
+                // A disconnect can land between the rows and the delayed summary. Keep
+                // pending text for the next client tick in-world, but discard party actions.
+                var pending=new ArrayDeque<ReportLine>();
+                for(var line:outgoingReport)if(line.kickTarget==null)
+                    pending.addLast(new ReportLine(line.text,false,line.delay,null));
+                outgoingReport.clear();
+                outgoingReport.addAll(pending);
+            }
+        }else outgoingReport.clear();
+        if(!sameConnection)nextReportSend=0;
         if(active && !finishing)clearStreak();
         if(!sameConnection){clearStreak();lastLowest=List.of();}
         reset();observedLevel=null;inDungeon=false;locationTicks=0;
@@ -315,30 +339,58 @@ public final class RunStats {
             var lines=ClearReport.lowest(rows,lowestTemplate);
             lastLowest=List.copyOf(lines);
             String lowestPlayer=suggestKick && sameWorld?ClearReport.lowestContribution(rows):"";
-            if(clearStreak.update(lowestPlayer))kickOption(mc,lowestPlayer,lowestPlayer+" ranked lowest for four runs (65% secrets, 35% rooms).");
+            boolean clearKick=clearStreak.update(lowestPlayer);
             var mages=rows.stream().filter(r->r.role().equalsIgnoreCase("Mage")).toList();
             String mage=suggestMage && sameWorld && bloodMs>25_000 && mages.size()==1 &&
                 rows.stream().noneMatch(r->r.role().isBlank())?mages.getFirst().name():"";
-            if(mageStreak.update(mage))kickOption(mc,mage,"Blood opened over 25s in four runs with "+mage+" as Mage.");
-            if(lowest==Lowest.PARTY && sameWorld){
-                String summary=String.join(" | ",lines);
-                if(summary.length()<=235)output(mc,summary,true);
-                else lines.forEach(line->output(mc,line,true));
-            }else if(lowest!=Lowest.OFF)lines.forEach(line->local(mc,line));
+            boolean mageKick=mageStreak.update(mage);
+            if(chat)party.forEach((name,p)->queueReport(p.line(name),shareRows&&sameWorld,0));
+            long delay=250_000_000L;
+            if(clearKick){
+                queueKick(lowestPlayer,kickText(kickTemplate,lowestPlayer),delay);
+                delay=0;
+            }
+            if(mageKick){
+                queueKick(mage,"Blood opened over 25s in four runs with "+mage+" as Mage.",delay);
+                delay=0;
+            }
+            if(lowest!=Lowest.OFF)queueLowest(lines,lowest==Lowest.PARTY && sameWorld,delay);
         }
-        if(chat)party.forEach((name,p)->output(mc,p.line(name),shareRows&&sameWorld));
+        sendNextReportLine(mc);
     }
-    private static void output(Minecraft mc,String line,boolean share){
-        if(!share||mc.getConnection()==null){local(mc,line);return;}
-        String plain=com.nucleus.client.HollowsDetector.stripFormatting(line).replaceAll("[\\p{Cntrl}]"," ").strip();
-        if(!plain.isEmpty())outgoingReport.addLast(plain.substring(0,Math.min(235,plain.length())));
+    private static void queueKick(String name,String reason,long delay){
+        if(outgoingReport.isEmpty())lastReportDelivery=System.nanoTime();
+        outgoingReport.addLast(new ReportLine(reason,false,delay,name));
+    }
+    private static void queueLowest(List<String> lines,boolean share,long delay){
+        if(share){
+            String combined=String.join(" | ",lines);
+            if(combined.length()<=235)lines=List.of(combined);
+        }
+        for(String line:lines){
+            queueReport("§"+com.nucleus.NucleusMod.CONFIG.lowestColor+line,share,delay);
+            delay=0;
+        }
+    }
+    private static void queueReport(String text,boolean party,long delay){
+        if(outgoingReport.isEmpty())lastReportDelivery=System.nanoTime();
+        outgoingReport.addLast(new ReportLine(text,party,delay,null));
     }
     private static void sendNextReportLine(Minecraft mc){
-        if(outgoingReport.isEmpty()||mc.getConnection()==null)return;
-        long now=System.nanoTime();
-        if(now<nextReportSend)return;
-        mc.getConnection().sendCommand("pchat [KCA] "+outgoingReport.removeFirst());
-        nextReportSend=now+650_000_000L;
+        while(!outgoingReport.isEmpty()){
+            long now=System.nanoTime();
+            var line=outgoingReport.getFirst();
+            boolean share=line.party && mc.getConnection()!=null;
+            if(now-lastReportDelivery<line.delay || share && now<nextReportSend)return;
+            outgoingReport.removeFirst();
+            if(line.kickTarget!=null)kickOption(mc,line.kickTarget,line.text);
+            else if(share){
+                String plain=com.nucleus.client.HollowsDetector.stripFormatting(line.text).replaceAll("[\\p{Cntrl}]"," ").strip();
+                if(!plain.isEmpty())mc.getConnection().sendCommand("pchat [KCA] "+plain.substring(0,Math.min(235,plain.length())));
+                nextReportSend=now+650_000_000L;
+            }else local(mc,line.text);
+            lastReportDelivery=now;
+        }
     }
     private static void local(Minecraft mc,String line){
         mc.gui.getChat().addClientSystemMessage(Component.literal("§d[KCA] §r"+line));
@@ -355,6 +407,7 @@ public final class RunStats {
         if(observedLevel!=mc.level){worldChanged(true);observedLevel=mc.level;}
         if(mc.player==null||mc.level==null)return;
         sendNextReportLine(mc);
+        if(!tracking()){if(active||pendingStart>0)reset();return;}
         if(--locationTicks<=0){
             locationTicks=20;
             boolean detected=detectDungeon(mc);
@@ -369,7 +422,6 @@ public final class RunStats {
         }
         if(pendingStart>0)pendingStart--;
         if(!active)return;
-        if(!tracking()){reset();return;}
         age++;
         if(finishing){
             if(age>=deadline){

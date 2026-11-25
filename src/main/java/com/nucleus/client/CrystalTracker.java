@@ -61,6 +61,9 @@ public final class CrystalTracker {
         return NucleusMod.CONFIG.crystalLayout == CrystalLayout.HORIZONTAL ? 21 : 14 * icons.size();
     }
     static void drawIcons(GuiGraphicsExtractor g, int x, int y, float scale) {
+        drawIcons(g,x,y,scale,iconWidth(net.minecraft.client.Minecraft.getInstance().font));
+    }
+    static void drawIcons(GuiGraphicsExtractor g, int x, int y, float scale, int width) {
         var font = net.minecraft.client.Minecraft.getInstance().font;
         boolean horizontal = NucleusMod.CONFIG.crystalLayout == CrystalLayout.HORIZONTAL;
         var pose = g.pose();
@@ -68,7 +71,7 @@ public final class CrystalTracker {
         try {
             pose.translate(x,y);
             pose.scale(scale,scale);
-            HudTint.backdrop(g,-3,-3,iconWidth(font)+3,iconHeight()+3);
+            HudTint.backdrop(g,-3,-3,width+3,iconHeight()+3);
             int i = 0;
             for (Gem gem : NucleusMod.CONFIG.crystalOrder) {
                 var icon = icons.get(gem);

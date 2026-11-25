@@ -92,6 +92,13 @@ public class NucleusConfig {
     public int hollowsMapX=8, hollowsMapY=8;
     public float hollowsMapScale=1;
     public boolean showBetaBadges = true;
+    public boolean compactDamageNumbers = false;
+    public boolean showDamageSplashes = true;
+    public int damageSignificantFigures = 2;
+    public boolean showDamageSymbols = true;
+    public boolean lowercaseDamageUnits = false;
+    public enum DamageColor { Original, Gold, Aqua, Pink, Red, White }
+    public DamageColor damageColor = DamageColor.Original;
     public boolean showStash = true, moleToolReminder = true;
     public enum StashCounts {
         BOTH("Items + materials"), ITEMS("Items"), MATERIALS("Materials");
@@ -163,7 +170,7 @@ public class NucleusConfig {
     public dev.purplepad.HudStyle nucleusHudStyle = dev.purplepad.HudStyle.KCA;
     public int paletteVersion = 0;
 	public int dungeonAccent = 0xFFB7AACD, nucleusAccent = 0xFFDCB7B0, timerColor = 0xFFF499B8;
-	public char secretColor = 'b', roomColor = 'd';
+	public char secretColor = 'b', roomColor = 'd', lowestColor = 'f';
 	public boolean useReferenceOffsets = false;
 	/** Automatic temple waypoints (from both Door Guardians) vs manual hotkey. */
 	public boolean templeAutoPlace = true;

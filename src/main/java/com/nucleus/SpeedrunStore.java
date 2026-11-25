@@ -142,7 +142,15 @@ public class SpeedrunStore {
 	/** Finished nucleus-run count (achievement progress). */
 	public long completedRuns = 0;
     public long remainingToolSets;
-    public String toolSetLabel(){return "Tool sets: " + remainingToolSets;}
+    private transient long lastTools, lastGoal, lastRuns;
+    private transient String toolsText, goalText;
+    public String toolSetLabel(){
+        if(toolsText==null || lastTools!=remainingToolSets){
+            lastTools=remainingToolSets;
+            toolsText="Tool sets: "+remainingToolSets;
+        }
+        return toolsText;
+    }
     public long manualRunTotal = -1;
     public long runGoal = 100;
     public long displayedRuns(){return manualRunTotal>=0?manualRunTotal:completedRuns;}
@@ -160,7 +168,15 @@ public class SpeedrunStore {
             return -1;
         }
     }
-    public String goalLabel(){return "Nucleus runs: "+displayedRuns()+" / "+runGoal;}
+    public String goalLabel(){
+        long runs=displayedRuns();
+        if(goalText==null || runs!=lastRuns || runGoal!=lastGoal){
+            lastRuns=runs;
+            lastGoal=runGoal;
+            goalText="Nucleus runs: "+runs+" / "+runGoal;
+        }
+        return goalText;
+    }
     public void countCompletedRun(){
         completedRuns++;
         if(manualRunTotal>=0 && manualRunTotal<Long.MAX_VALUE)manualRunTotal++;

@@ -119,8 +119,8 @@ public final class SpeedrunHud implements HudElement {
         int pad=(int)Math.ceil(3*scale);
         int x=Math.clamp(cfg.crystalHudX,pad,Math.max(pad,gfx.guiWidth()-pad-(int)Math.ceil(width*scale)));
         int y=Math.clamp(cfg.crystalHudY,pad,Math.max(pad,gfx.guiHeight()-pad-(int)Math.ceil(height*scale)));
-        if(line==null)CrystalTracker.drawIcons(gfx,x,y,scale);
-        else drawHudLine(gfx,line,x,y,scale,0xFFFFFFFF);
+        if(line==null)CrystalTracker.drawIcons(gfx,x,y,scale,width);
+        else drawHudLine(gfx,line,x,y,scale,0xFFFFFFFF,width);
     }
     static void drawToolSets(GuiGraphicsExtractor g) {
         var cfg = NucleusMod.CONFIG;
@@ -129,9 +129,10 @@ public final class SpeedrunHud implements HudElement {
             || JackpotAnimation.cinematicActive() || screen instanceof MoveHudScreen
             || screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen) return;
         String label = NucleusMod.SPEEDRUN.toolSetLabel();
-        int x = Math.clamp(cfg.toolHudX,3,Math.max(3,g.guiWidth()-3-(int)Math.ceil(Minecraft.getInstance().font.width(label)*cfg.toolHudScale)));
+        int width=Minecraft.getInstance().font.width(label);
+        int x = Math.clamp(cfg.toolHudX,3,Math.max(3,g.guiWidth()-3-(int)Math.ceil(width*cfg.toolHudScale)));
         int y = Math.clamp(cfg.toolHudY,3,Math.max(3,g.guiHeight()-3-(int)Math.ceil(12*cfg.toolHudScale)));
-        drawHudLine(g,label,x,y,cfg.toolHudScale,0xFFFFD6AE);
+        drawHudLine(g,label,x,y,cfg.toolHudScale,0xFFFFD6AE,width);
     }
     static void drawGoal(GuiGraphicsExtractor gfx){
         var cfg=NucleusMod.CONFIG;
@@ -140,13 +141,16 @@ public final class SpeedrunHud implements HudElement {
         drawHudLine(gfx,store.goalLabel(),cfg.runGoalX,cfg.runGoalY,cfg.runGoalScale,store.displayedRuns()>=store.runGoal?0xFF88EE99:0xFFFFD6AE);
     }
     static void drawHudLine(GuiGraphicsExtractor gfx,String text,int x,int y,float scale,int color){
+        drawHudLine(gfx,text,x,y,scale,color,Minecraft.getInstance().font.width(text));
+    }
+    static void drawHudLine(GuiGraphicsExtractor gfx,String text,int x,int y,float scale,int color,int width){
         var font=Minecraft.getInstance().font;
         var pose=gfx.pose();
         pose.pushMatrix();
         try{
             pose.translate(x,y);
             pose.scale(scale,scale);
-            HudTint.backdrop(gfx,-3,-3,font.width(text)+3,12);
+            HudTint.backdrop(gfx,-3,-3,width+3,12);
             gfx.text(font,text,0,0,color,true);
         }finally{pose.popMatrix();}
     }
