@@ -77,7 +77,7 @@ final class HollowsMap {
     }
 
     static void update(Minecraft mc, List<String> sidebar){
-        if(world!=mc.level) reset();
+        if(world!=null && world!=mc.level) reset();
         if(!HollowsDetector.isInCrystalHollows() || mc.player==null){
             if(world!=null)reset();
             return;

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "kca",
-  "version": "1.13.10",
+  "version": "1.13.12",
   "name": "Kitagawa Codex Addons",
-  "description": "Airks Modded Bs for things that I like; 1.13.10",
+  "description": "Airks Modded Bs for things that I like; 1.13.12",
   "authors": ["Airk and Codex icl" ],
   "contributors": [
     "Synnerz/devonian contributors (original timer and server tick hook)",

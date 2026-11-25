@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 final class PartyRoster {
     private static final Pattern HEADER = Pattern.compile("Party Members \\((\\d{1,3})\\)(?: \\(\\d+\\))?");
     private static final Pattern ROW = Pattern.compile("Party (Leader|Moderators|Members):\\s*(.*)");
+    private static final Pattern REPEAT_COUNT = Pattern.compile("\\s+\\(\\d+\\)$");
     private static final Pattern RANK = Pattern.compile("\\[[^\\]\\r\\n]+\\]");
     private static final Pattern USER = Pattern.compile("[A-Za-z0-9_]{1,16}");
     private final Set<String> members = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
@@ -24,7 +25,8 @@ final class PartyRoster {
         if(expected==0)return;
         var row=ROW.matcher(line);
         if(!row.matches())return;
-        String names=RANK.matcher(row.group(2)).replaceAll(" ").replaceAll("[\\p{So}\\p{Sk}\\p{Pd}\\p{Cf}\\p{M}]"," ").strip();
+        String membersRow=REPEAT_COUNT.matcher(row.group(2).stripTrailing()).replaceFirst("");
+        String names=RANK.matcher(membersRow).replaceAll(" ").replaceAll("[\\p{So}\\p{Sk}\\p{Pd}\\p{Cf}\\p{M}]"," ").strip();
         if(names.isEmpty())return;
         var tokens=names.split("\\s+");
         if(row.group(1).equals("Leader")){

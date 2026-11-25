@@ -86,8 +86,8 @@ public final class PurplePadClient implements ClientModInitializer {
                     com.nucleus.client.JackpotAnimation.startPreview(cfg.jackpotPreview);
                     return 1;
                 })));
-            if(KcaEdition.DUNGEONS)previews.then(literal("lowest").executes(test(c->reply(c.getSource(),String.join("\n",RunStats.sampleLowest(RunStats.lowestTemplate))+"\nPreview after 4 runs: Alex ranked lowest (65% secrets, 35% rooms). [Kick Alex]\nMage example: blood opened over 25s in four runs with Robin as Mage. [Kick Robin]"))))
-                .then(literal("report").executes(test(c -> reply(c.getSource(),String.join("\n",RunStats.testReport())))))
+            if(KcaEdition.DUNGEONS)previews.then(literal("lowest").executes(test(c->RunStats.previewReport(true))))
+                .then(literal("report").executes(test(c->RunStats.previewReport(false))))
                 .then(literal("timer").executes(test(PurplePadClient::previewTimer)))
                 .then(literal("secrets").executes(test(c -> {
                     Minecraft.getInstance().schedule(() -> Minecraft.getInstance().gui.setScreen(new RunHudEditor(null)));

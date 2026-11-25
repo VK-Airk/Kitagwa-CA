@@ -93,8 +93,8 @@ public final class HollowsDetector {
 		// Divan" is 17 chars with its icon).
 		Optional<String> area = tabArea(client);
         if(area.isPresent() && !area.get().toLowerCase(java.util.Locale.ROOT).contains("crystal hollows")){
+            if(inHollows)HollowsMap.reset();
             inHollows=inMines=inNucleus=inKhazad=false;
-            HollowsMap.reset();
             return;
         }
         List<String> lines = sidebarLines(client);

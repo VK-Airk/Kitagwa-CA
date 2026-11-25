@@ -125,6 +125,7 @@ public final class KcaMenu extends Screen {
             if(KcaEdition.DUNGEONS)targets.add(new Target("Dungeons / Purple Pad Timer","storm py simple move resize shadow timer color",()->dungeon(false)));
             if(KcaEdition.DUNGEONS)targets.add(new Target("Dungeons / Secrets and rooms","counter report hud chat print scale move colors teammates",()->dungeon(true)));
             if(KcaEdition.GENERAL)targets.add(new Target("General / Settings","master enable quiet chat test commands colors themes accent gameplay hud menu effects animation backgrounds",()->show(new KcaMenu(Page.GLOBAL,this))));
+            if(KcaEdition.GENERAL)targets.add(new Target("General / Damage numbers","damage splash compact precision significant figures critical color symbols",()->show(new DamageSettingsScreen(this))));
             if(KcaEdition.GENERAL)targets.add(new Target("General / Item rarity","skyblocker item rarity backgrounds opacity shape palette inventory hotbar custom item color",()->generalTabFrom(this,3)));
             if(KcaEdition.GENERAL)targets.add(new Target("General / Achievements","achievements progress dungeon rooms secrets storm nucleus records milestones",()->show(nucleus(KcaNucleusSettings.achievements(),new KcaMenu(Page.GLOBAL,this)))));
             if(KcaEdition.HAS_HUD)targets.add(new Target("GUI settings","simple kca purple pad fancy gui appearance hud style nucleus counter timer",()->show(new GuiSettingsScreen(this,KcaEdition.DUNGEONS?GuiSettingsScreen.Element.TIMER:GuiSettingsScreen.Element.NUCLEUS))));
@@ -209,7 +210,8 @@ public final class KcaMenu extends Screen {
                     RunStats.saveOptions();rebuildWidgets();
                 }).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("Print the fewest rooms and secrets separately. Mages are excluded. LOCAL shows you the result. PARTY shares it with your party.")));
                 button("Move / resize",x,y+44,w,accent(),()->show(new RunHudEditor(this)));
-                textColor(x,y+66,w,true);textColor(x,y+88,w,false);
+                textColor(x,y+66,half,0);textColor(x+half+4,y+66,half,1);
+                textColor(x,y+88,w,2);
                 button("Secrets message",x,y+110,half,accent(),()->show(new SecretMessageScreen(this)));
                 button(state("Hide Blade split recap",RunStats.muteBladeRecap),x+half+4,y+110,half,accent(),()->{RunStats.muteBladeRecap=!RunStats.muteBladeRecap;RunStats.saveOptions();rebuildWidgets();}).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("Hide Blade Addons’ final Splits chat summary. Its timer still runs.")));
             }else{
@@ -240,7 +242,8 @@ public final class KcaMenu extends Screen {
                 }).setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("Show a pink BETA badge above listed testers' names.")));
             }else{
                 button(state("KCA",cfg.kcaEnabled),x,y,w,accent(),()->{cfg.kcaEnabled=!cfg.kcaEnabled;if(!cfg.kcaEnabled)PurplePadClient.disableRuntime();save();});
-                button(state("Quiet chat",cfg.quietChat),x,y+22,w,KcaTheme.PETAL,()->{cfg.quietChat=!cfg.quietChat;save();});
+                button(state("Quiet chat",cfg.quietChat),x,y+22,(w-4)/2,KcaTheme.PETAL,()->{cfg.quietChat=!cfg.quietChat;save();});
+                button("Damage numbers",x+(w-4)/2+4,y+22,(w-4)/2,KcaTheme.PETAL,()->show(new DamageSettingsScreen(this)));
                 button(state("Test commands",cfg.testCommands),x,y+44,w,KcaTheme.PETAL,()->{cfg.testCommands=!cfg.testCommands;save();});
                 int half=(w-4)/2;
                 button(state("Game HUD",cfg.showGameplayHud),x,y+66,half,KcaTheme.MAUVE,()->{cfg.showGameplayHud=!cfg.showGameplayHud;save();});
@@ -322,12 +325,12 @@ public final class KcaMenu extends Screen {
         int next=(idx+1)%COLORS.length;
         button(label+" - "+(idx<COLORS.length?NAMES[idx]:"Custom"),x,y,w,value,()->{NucleusMod.CONFIG.paletteVersion=1;set.accept(COLORS[next]);save();});
     }
-    private void textColor(int x,int y,int w,boolean secret){
-        var cfg=NucleusMod.CONFIG;char code=secret?cfg.secretColor:cfg.roomColor;
+    private void textColor(int x,int y,int w,int kind){
+        var cfg=NucleusMod.CONFIG;char code=kind==0?cfg.secretColor:kind==1?cfg.roomColor:cfg.lowestColor;
         int i=Math.max(0,TEXT_CODES.indexOf(code));var formatting=net.minecraft.ChatFormatting.getByCode(TEXT_CODES.charAt(i));
-        button((secret?"Secrets":"Rooms")+" color - "+TEXT_NAMES[i],x,y,w,0xFF000000|net.minecraft.network.chat.TextColor.fromLegacyFormat(formatting).getValue(),()->{
+        button((kind==0?"Secrets":kind==1?"Rooms":"Fewest / kick")+" color - "+TEXT_NAMES[i],x,y,w,0xFF000000|net.minecraft.network.chat.TextColor.fromLegacyFormat(formatting).getValue(),()->{
             char next=TEXT_CODES.charAt((i+1)%TEXT_CODES.length());
-            if(secret)cfg.secretColor=next;else cfg.roomColor=next;save();
+            if(kind==0)cfg.secretColor=next;else if(kind==1)cfg.roomColor=next;else cfg.lowestColor=next;save();
         });
     }
     private final class BranchNode extends Button {

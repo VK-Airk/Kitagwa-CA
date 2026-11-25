@@ -88,10 +88,14 @@ public final class JackpotAnimation {
             if (model == null || !model.getNamespace().equals("hypixel_skyblock")) return item;
             var resources = Minecraft.getInstance().getResourceManager();
             if (resources.getResource(model.withPath(path -> "items/" + path + ".json")).isPresent()) return item;
+            return bundledModel(item,model);
+        }
+        static ItemStack bundledModel(ItemStack item,net.minecraft.resources.Identifier model) {
+            var resources=Minecraft.getInstance().getResourceManager();
             String path = model.getPath();
             String sprite = path.substring(path.lastIndexOf('/') + 1);
             var bundled = net.minecraft.resources.Identifier.fromNamespaceAndPath("kca", "mado/" + sprite);
-            if (this == FLAWLESS_GEMSTONE && resources.getResource(bundled.withPath(p -> "items/" + p + ".json")).isEmpty())
+            if (sprite.startsWith("flawless_") && resources.getResource(bundled.withPath(p -> "items/" + p + ".json")).isEmpty())
                 bundled = net.minecraft.resources.Identifier.fromNamespaceAndPath("kca", "mado/flawless_ruby_gem");
             var fallback = item.copy();
             fallback.set(DataComponents.ITEM_MODEL, bundled);
@@ -497,7 +501,7 @@ public final class JackpotAnimation {
         if (half < 1) return;
         if (rewardModel != null) {
             try {
-                rewardModel.draw(gfx, x, y, size, (int)Math.ceil(Math.min(width, height) * .29f), spinBlend, now);
+                rewardModel.draw(gfx, x, y, size, spinBlend, now);
                 return;
             } catch (RuntimeException e) {
                 NucleusMod.LOGGER.warn("Could not draw the 3D reward for {}. Using its bundled icon.", type(), e);
@@ -512,6 +516,13 @@ public final class JackpotAnimation {
             gfx.blit(rewardSprite, -half, -half, half, half, 0f, 1f, 0f, 1f);
         } finally {
             pose.popMatrix();
+        }
+    }
+
+    static void rewardRenderFailed(ItemPopup source, RuntimeException error) {
+        if (rewardModel == source) {
+            NucleusMod.LOGGER.warn("Could not render {}. Using its bundled drop texture.", type(), error);
+            rewardModel = null;
         }
     }
 

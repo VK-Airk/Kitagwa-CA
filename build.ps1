@@ -121,7 +121,7 @@ if ($custom) {
     $mixinsFile = Join-Path $classesDir 'purple-pad-timer.mixins.json'
     $mixins = Get-Content -LiteralPath $mixinsFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $branchMixins = @{
-        General = @('BetaNameTag','RaritySlots','RarityHotbar','SkyblockerRarity','SkyblockerStorageRarity','SkysoftStorageRarity')
+        General = @('BetaNameTag','CompactDamageTag','RaritySlots','RarityHotbar','SkyblockerRarity','SkyblockerStorageRarity','SkysoftStorageRarity')
         Dungeons = @('ServerPingMixin','StormChatMixin','BladeSplitRecap','NoammClearReport')
         Chat = @('TypedShortcut','ShortcutKeys','SkyblockerShortcuts','SkysoftInventoryShortcuts','PartyPong','SboPartyReply','NoammPartyReply','OdinPartyReply')
     }

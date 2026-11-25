@@ -38,6 +38,7 @@ public class NucleusClient implements ClientModInitializer {
         if(KcaEdition.GENERAL)Achievements.migrateOldAchievements();
         if(!KcaEdition.NUCLEUS)return;
         NucleusKeybinds.register();
+        ItemPopup.register();
         RunInventoryControls.register();
         addHud("hollows-map", (g,d)->HollowsMap.render(g));
         addHud("stash", (g,d)->StashHud.draw(g));
@@ -47,6 +48,7 @@ public class NucleusClient implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			SkyBlockDetector.reset();
+			StashHud.reset();
 			resetLobbyState();
 			if (NucleusMod.CONFIG.safeMode) {
 				NucleusMod.CONFIG.safeMode = false;
@@ -129,7 +131,6 @@ public class NucleusClient implements ClientModInitializer {
 	private static boolean wasOnSkyBlock;
     public static void resetLobbyState() {
         NucleusPartyAlerts.reset();
-        StashHud.reset();
         wasOnSkyBlock=false;
 		HollowsDetector.reset();
 		LobbyDay.reset();

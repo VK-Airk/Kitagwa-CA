@@ -24,6 +24,12 @@ public class PartyRosterTest {
         party.accept("Party Leader: [MVP++] Tester ●");
         party.accept("Party Members: [MVP+] Caandy_ ●");
         check(party.complete() && party.matches("caan").equals(List.of("Caandy_")));
+        party.accept("Party Members (3) (4)");
+        party.accept("Party Leader: [MVP++] Tester ● (3)");
+        party.accept("Party Moderators: [MVP+] Caandy_ ●  (2)");
+        party.accept("Party Members: [MVP++] Slothy__ ● (2)");
+        check(party.complete() && party.matches("caan").equals(List.of("Caandy_")));
+        check(PartyCatalog.aliases.get("k").key().equals("kick"));
         check(PartyCatalog.aliases.get("rpt")==PartyCatalog.aliases.get("reinv"));
         check(PartyCatalog.aliases.get("reinvite").key().equals("reinv"));
         check(PartyCatalog.aliases.get("p")==PartyCatalog.aliases.get("invite"));

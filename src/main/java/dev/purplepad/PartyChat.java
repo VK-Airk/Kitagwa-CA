@@ -95,7 +95,7 @@ public final class PartyChat {
         var mc=Minecraft.getInstance();
         if(!cfg.kcaEnabled || !cfg.partyChatEnabled || mc.player==null || mc.getConnection()==null)return;
         if(lookup!=null)readPartyList(text,System.currentTimeMillis());
-        if(!awaitingLeave.isEmpty() || !inviteAfterLeave.isEmpty() || lastKicked!=null
+        if(lookup!=null || !awaitingLeave.isEmpty() || !inviteAfterLeave.isEmpty() || lastKicked!=null
             || text.contains("has been removed from the party") || expectConfirm!=0 || autoOffAt!=0){
             String plain=net.minecraft.ChatFormatting.stripFormatting(text);
             if(plain!=null){
@@ -237,7 +237,11 @@ public final class PartyChat {
         if(!(clean.startsWith("Party Members (")||clean.startsWith("Party Leader:")||
             clean.startsWith("Party Moderators:")||clean.startsWith("Party Members:")||clean.startsWith("----")))return;
         for(String row:clean.split("\\R"))request.roster.accept(row.strip());
-        if(!request.roster.complete())return;
+    }
+    private static void resolveLookup(long now){
+        var request=lookup;
+        if(now>=request.deadline){expireLookup();return;}
+        if(!request.roster.complete() || now-lastAction<650)return;
         lookup=null;
         var cfg=NucleusMod.CONFIG;
         if(!cfg.kcaEnabled||!cfg.partyChatEnabled||cfg.partyDisabled.contains(request.key))return;
@@ -255,6 +259,9 @@ public final class PartyChat {
     private static boolean cfgAuto(){return NucleusMod.CONFIG.partyAllInviteOff;}
     private static void observe(String plain,String self,long now){
         if(plain.indexOf(':')>=0)return;
+        if(lookup!=null && (plain.startsWith("You left the party") || plain.startsWith("You have been kicked")
+            || plain.startsWith("You are not currently in a party") || plain.contains("disbanded the party")
+            || plain.contains("has been disbanded") || DEPARTED.matcher(plain).matches() || JOINED.matcher(plain).matches()))lookup=null;
         if(!awaitingLeave.isEmpty() || !inviteAfterLeave.isEmpty()){
             Matcher departed=DEPARTED.matcher(plain),joined=JOINED.matcher(plain);
             if(departed.matches()){
@@ -373,7 +380,7 @@ public final class PartyChat {
                 server("party invite "+name);
             }
         }
-        if(lookup!=null&&now>=lookup.deadline)expireLookup();
+        if(lookup!=null)resolveLookup(now);
         if(expectConfirm<now)expectConfirm=0;
         if(!cfgAuto())autoOffAt=0;
         if(autoOffAt>0&&now>=autoOffAt){autoOffAt=0;server("party settings allinvite");}
