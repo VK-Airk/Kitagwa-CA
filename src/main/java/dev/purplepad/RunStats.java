@@ -103,13 +103,15 @@ public final class RunStats {
     static final Path CONFIG=FabricLoader.getInstance().getConfigDir().resolve("kca-run-stats.properties");
     static final String START="[NPC] Mort: Here, I found this map when I first entered the dungeon.";
     static final Pattern TAB=Pattern.compile("^\\[\\d+\\]\\s+(?:(?:\\[[^]]+\\]|[^\\w\\s\\[\\]]+)\\s+)*(\\w{1,16})\\s+.*\\((Healer|Mage|Berserk|Archer|Tank|DEAD)(?: [^)]*)?\\)$",Pattern.CASE_INSENSITIVE);
-    static final Pattern COUNT=Pattern.compile("^(?:\\[[A-Za-z0-9+ -]{1,18}\\]\\s*)?[^\\p{L}\\p{N}_:>\\[\\]]*?([A-Za-z0-9_]{1,16})[^\\p{L}\\p{N}_:>\\[\\]]*:\\s*([0-9]{1,3}(?:,[0-9]{3}){1,3}|[0-9]{1,12})$");
     private static final Map<String,Player> party=new LinkedHashMap<>();
     private static final Map<String,SecretSamples> commandSamples=new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private static byte[] lastMap;
     private static List<String> liveRoster=List.of();
     private static final RoomClears clears=new RoomClears();
-    private static boolean active, finishing, header;
+    private static boolean active, finishing, inBoss, bossSample;
+    private static final SecretCountReply secretReply=new SecretCountReply();
+    private static long preRunUntil;
+    private static net.minecraft.client.multiplayer.ClientLevel preRunLevel;
     private static String completedFloor="";
     private static long completionTime=-1;
     private static int age,deadline,readUntil,session,query,roomSize,originX,originZ;
@@ -120,7 +122,11 @@ public final class RunStats {
         String role="";
         boolean seenOnMap;
         ClearReport.Counts finalCounts;
-        long secrets(){return finalCounts!=null?finalCounts.secrets():command.delta(finishing).or(()->api.delta(finishing)).orElse(-1L); }
+        long secrets(){
+            if(finalCounts!=null)return finalCounts.secrets();
+            return command.delta(finishing).or(()->api.delta(finishing))
+                .or(command::bossCheckpoint).or(api::bossCheckpoint).orElse(-1L);
+        }
         int soloCount(){return finalCounts==null?solo.size():finalCounts.solo();}
         int sharedCount(){return finalCounts==null?shared.size():finalCounts.shared();}
         final SecretSamples command, api = new SecretSamples();
@@ -185,7 +191,8 @@ public final class RunStats {
         ClientPlayConnectionEvents.JOIN.register((h,s,c)->worldChanged(false));
         ClientPlayConnectionEvents.DISCONNECT.register((h,c)->worldChanged(false));
         ClientTickEvents.END_CLIENT_TICK.register(RunStats::tick);
-        ClientReceiveMessageEvents.ALLOW_GAME.register((message,overlay)->overlay||!active||!header||!isCommandReply(com.nucleus.client.HollowsDetector.stripFormatting(message.getString()).trim()));
+        // Fabric may hide a reply before the normal GAME event can deliver it.
+        ClientReceiveMessageEvents.ALLOW_GAME.register((message,overlay)->overlay || !receiveSecrets(message.getString()));
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,Identifier.fromNamespaceAndPath("kca","run_stats"),(g,d)->{
             var mc=Minecraft.getInstance();
             if(!PurplePadClient.hudEnabled()||!active||!hud||!inDungeon||mc.player==null||mc.gui.hud.isHidden()||mc.gui.screen() instanceof com.nucleus.client.MoveHudScreen||mc.gui.screen() instanceof GuiSettingsScreen||mc.gui.screen() instanceof RunHudEditor)return;
@@ -236,16 +243,27 @@ public final class RunStats {
         if(!sameConnection){clearStreak();lastLowest=List.of();}
         reset();observedLevel=null;inDungeon=false;locationTicks=0;
     }
-    static void reset(){completedFloor="";completionTime=-1;displayStamp=-1;session++;active=false;finishing=false;header=false;party.clear();commandSamples.clear();lastMap=null;liveRoster=List.of();clears.reset();age=query=readUntil=roomSize=pendingStart=missingLocation=0;}
+    static void reset(){completedFloor="";completionTime=-1;displayStamp=-1;session++;active=false;finishing=false;inBoss=false;bossSample=false;secretReply.reset();preRunLevel=null;preRunUntil=0;party.clear();commandSamples.clear();lastMap=null;liveRoster=List.of();clears.reset();age=query=readUntil=roomSize=pendingStart=missingLocation=0;}
     private static void startRun(Minecraft mc){
-        reset();observedLevel=mc.level;inDungeon=true;locationTicks=30;active=true;
+        var early=preRunWindow(mc)?new TreeMap<>(commandSamples):null;
+        reset();
+        if(early!=null)commandSamples.putAll(early);
+        observedLevel=mc.level;inDungeon=true;locationTicks=30;active=true;
         party.computeIfAbsent(mc.player.getScoreboardName(),Player::new);refreshParty(mc);
     }
     static void message(String line){
         if(!com.nucleus.NucleusMod.CONFIG.kcaEnabled||!tracking())return;
         var mc=Minecraft.getInstance();
+        if(receiveSecrets(line))return;
         if(line.indexOf('\n')>=0){
             for(String row:line.split("\\R"))if(!row.isBlank())message(row.strip());
+            return;
+        }
+        if(!active && line.trim().equals("Starting in 4 seconds.") && mc.level!=null && mc.getConnection()!=null
+                && !preRunWindow(mc) && (detectDungeon(mc)||dungeonRoster(mc))){
+            commandSamples.clear();secretReply.reset();
+            preRunLevel=mc.level;preRunUntil=System.nanoTime()+10_000_000_000L;
+            mc.getConnection().sendCommand("secretcount");
             return;
         }
         if(START.equals(line.trim())&&!active&&mc.player!=null&&mc.level!=null){
@@ -257,13 +275,9 @@ public final class RunStats {
         String clean=line.trim();
         if((active||pendingStart>0) && bloodMs<0 && mortAt!=0 && clean.equalsIgnoreCase("The BLOOD DOOR has been opened!"))bloodMs=(System.nanoTime()-mortAt)/1_000_000L;
         if(!active)return;
-        if(clean.equals("Secret Counts:") && query>0 && age<=readUntil)header=true;
-        if(isCommandReply(clean)){
-            var count=COUNT.matcher(clean);
-            if(count.matches()){
-                commandSamples.computeIfAbsent(count.group(1),k->new SecretSamples()).record(Long.parseLong(count.group(2).replace(",","")),query,finishing);
-            }
-            return;
+        if(!finishing && !inBoss && LocalDungeonSplits.isBossEntry(clean)){
+            inBoss=true;
+            sample(mc,true);
         }
         String floor=DungeonLocation.reportedFloor(clean);
         if(!floor.isEmpty())completedFloor=floor;
@@ -299,14 +313,14 @@ public final class RunStats {
     }
     private static void sample(Minecraft mc,boolean last){
         if(mc.getConnection()==null||mc.player==null)return;
-        header=false;readUntil=age+95;int serial=++query;
+        secretReply.reset();boolean checkpoint=last && !finishing;bossSample=checkpoint;readUntil=age+95;int serial=++query;
         mc.getConnection().sendCommand("secretcount");
         if(API_KEY==null||API_KEY.isBlank())return;
         int generation=session;
-        // Optional official Hypixel API access for players absent from /secretcount.
+        // Keep API and command samples separate; their lifetime totals may update at different times.
         for(var entry:party.entrySet()){
             var info=mc.getConnection().getPlayerInfo(entry.getKey());
-            if(info==null||entry.getKey().equals(mc.player.getScoreboardName()))continue;
+            if(info==null)continue;
             var request=HttpRequest.newBuilder(URI.create("https://api.hypixel.net/v2/player?uuid="+info.getProfile().id()))
                 .header("API-Key",API_KEY).timeout(Duration.ofSeconds(4)).build();
             var player=entry.getValue();
@@ -315,7 +329,9 @@ public final class RunStats {
                 var achievements=JsonParser.parseString(response.body()).getAsJsonObject().getAsJsonObject("player").getAsJsonObject("achievements");
                 if(achievements==null||!achievements.has("skyblock_treasure_hunter"))return;
                 long value=achievements.get("skyblock_treasure_hunter").getAsLong();
-                mc.execute(()->{if(session==generation&&query==serial)player.api.record(value,serial,last);});
+                mc.execute(()->{if(session==generation&&query==serial){
+                    if(checkpoint)player.api.recordBoss(value);else player.api.record(value,serial,last);
+                }});
             }).exceptionally(e->null);
         }
     }
@@ -396,11 +412,17 @@ public final class RunStats {
         mc.gui.hud.getChat().addClientSystemMessage(Component.literal("§d[KCA] §r"+line));
     }
     private static class Http {static final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();}
-    private static boolean isCommandReply(String message){
-        if(!active||query==0||age>readUntil||!header)return false;
-        if(message.startsWith("Secret Counts:")&&message.indexOf('\n')>=0)
-            return message.lines().map(String::strip).filter(s->!s.isEmpty()).allMatch(s->s.equals("Secret Counts:")||COUNT.matcher(s).matches());
-        return message.equals("Secret Counts:") || COUNT.matcher(message).matches();
+    private static boolean preRunWindow(Minecraft mc){
+        return preRunLevel!=null && preRunLevel==mc.level && System.nanoTime()<preRunUntil;
+    }
+    private static boolean receiveSecrets(String text){
+        if(!com.nucleus.NucleusMod.CONFIG.kcaEnabled || !tracking())return false;
+        if(active ? query==0 || age>readUntil : !preRunWindow(Minecraft.getInstance()))return false;
+        return secretReply.read(text,(name,total)->{
+            var counts=commandSamples.computeIfAbsent(name,k->new SecretSamples());
+            if(active && bossSample)counts.recordBoss(total);
+            else counts.record(total,active?query:1,active && finishing);
+        });
     }
     private static void tick(Minecraft mc){
         if(!com.nucleus.NucleusMod.CONFIG.kcaEnabled){if(active||pendingStart>0||!outgoingReport.isEmpty())worldChanged(false);return;}
@@ -430,7 +452,7 @@ public final class RunStats {
             }
             return;
         }
-        if(age==1||age%600==0&&hud)sample(mc,false);
+        if(!inBoss && (age==1 || age%600==0 && hud))sample(mc,false);
         if(age%5!=0)return;
         if(age%20==5)liveRoster=refreshParty(mc);
         var live=liveRoster;

@@ -29,6 +29,23 @@ public final class RunStatsTest {
         rooms.reset();
         scan.run();
         check(awards.size()==2,"map already cleared at first observation");
+        var replies=new SecretCountReply();
+        var totals=new java.util.TreeMap<String,Long>(String.CASE_INSENSITIVE_ORDER);
+        check(!replies.read("Alex: 900",totals::put),"row outside requested header");
+        check(replies.read("  §6Secret Counts:\n §8♲ [VIP+] Armaraa: §b46,893\n§d$ Garrulous_ $: 4,399",totals::put),"formatted multiline server reply");
+        check(totals.get("armaraa")==46893 && totals.get("Garrulous_")==4399,"attributed named lifetime totals");
+        check(!replies.read("Party > Alex: 0",totals::put),"unrelated chat stays visible");
+        replies.reset();
+        check(!replies.read("Armaraa: 999",totals::put),"new request requires its own header");
+        var run=new SecretSamples();
+        run.record(totals.get("Armaraa"),1,false);
+        check(replies.read("Secret Counts:",totals::put) && replies.read("Armaraa: 46,898",totals::put),"separate header and count packets");
+        run.recordBoss(totals.get("Armaraa"));
+        check(run.delta(true).or(run::bossCheckpoint).orElseThrow()==5,"post-clear reading survives a disband with no final reply");
+        run.record(0,4,true);
+        check(run.delta(true).or(run::bossCheckpoint).orElseThrow()==5,"invalid end counter preserves boss checkpoint");
+        run.record(46900,4,true);
+        check(run.delta(true).orElseThrow()==7,"final reading supersedes boss-entry checkpoint");
         var command = new SecretSamples();
         command.record(500,1,false);
         command.record(507,2,false);
@@ -90,6 +107,6 @@ public final class RunStatsTest {
         check(DungeonLocation.reportedTime("Party > Alex: ☠ Defeated Bonzo in 1s")==-1,"ignore player message");
         check(DungeonLocation.reportedTime("Run Time 4m 52.14s (287.65s)")==-1,"ignore mod recap");
         check(DungeonLocation.reportedTime("☠ Defeated Bonzo in 04m 60s")==-1,"invalid seconds");
-        System.out.println("55 dungeon report, time, location and placement checks passed.");
+        System.out.println("Dungeon report, secret sampling, time, location and placement checks passed.");
     }
 }

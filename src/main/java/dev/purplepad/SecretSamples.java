@@ -6,9 +6,19 @@ import java.util.Optional;
 final class SecretSamples {
     private long start = -1, latest = -1;
     private boolean receivedEnd;
+    private long bossDelta = -1;
+
+    void recordBoss(long total) {
+        latest = total;
+        if (start >= 0 && total >= start) bossDelta = total - start;
+    }
+
+    Optional<Long> bossCheckpoint() {
+        return bossDelta < 0 ? Optional.empty() : Optional.of(bossDelta);
+    }
 
     void record(long total, int query, boolean end) {
-        if (query == 1 && !end) start = total;
+        if (start < 0 && query == 1 && !end) start = total;
         latest = total;
         receivedEnd |= end;
     }

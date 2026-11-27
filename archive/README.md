@@ -2,6 +2,7 @@
 
 | KCA | Minecraft 26.1.2 | Minecraft 26.2 |
 | --- | --- | --- |
+| 1.13.12 | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/KCA-1.13.12-mc26.1.2.jar) | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.13/archive/1.13.12/KCA-1.13.12-mc26.2.jar) |
 | 1.13.11 | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/archive/1.13.11/KCA-1.13.11-mc26.1.2.jar) | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/archive/1.13.11/KCA-1.13.11-mc26.2.jar) |
 | 1.13.10 | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.10/KCA-1.13.10-mc26.1.2.jar) | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.10/KCA-1.13.10-mc26.2.jar) |
 | 1.13.9 | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.9/KCA-1.13.9-mc26.1.2.jar) | [Download JAR](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.9/KCA-1.13.9-mc26.2.jar) |

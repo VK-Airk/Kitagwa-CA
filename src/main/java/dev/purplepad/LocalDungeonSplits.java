@@ -47,6 +47,7 @@ public final class LocalDungeonSplits {
         "[BOSS] Scarf: This is where the journey ends for you, Adventurers.",
         "[BOSS] The Professor: I was burdened with terrible news recently...",
         "[BOSS] Thorn: Welcome Adventurers! I am Thorn, the Spirit! And host of the Vegan Trials!");
+    static boolean isBossEntry(String line){return BOSS_ENTRY.contains(line);}
     private static final List<String> EARLY=List.of("Blood rush","Blood clear","Portal","Boss");
     private static final List<String> SIX=List.of("Blood rush","Blood clear","Portal","Boss","Giants","Sadan");
     private static final List<String> SEVEN=List.of("Blood rush","Blood clear","Portal","Boss","Storm","Terminals","Goldor","Necron");
@@ -66,7 +67,7 @@ public final class LocalDungeonSplits {
                 else if(line.equalsIgnoreCase("The BLOOD DOOR has been opened!") ||
                     WATCHER_OPEN.contains(line))phase="Blood clear";
                 else if(line.equals("[BOSS] The Watcher: You have proven yourself. You may pass."))phase="Portal";
-                else if(BOSS_ENTRY.contains(line))phase="Boss";
+                else if(isBossEntry(line))phase="Boss";
                 else if(DungeonLocation.reportedTime(line)>0)phase="Finish";
             }
             if(phase!=null)boundaries.putIfAbsent(phase,now);
