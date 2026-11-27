@@ -2,10 +2,12 @@
 
 KCA is a client-side Fabric mod for Hypixel SkyBlock. Download the JAR that matches your Minecraft version.
 
-| Minecraft | KCA 1.13.12 |
-| --- | --- |
-| 26.1.2 | [Download for Minecraft 26.1.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/KCA-1.13.12-mc26.1.2.jar) |
-| 26.2 | [Download for Minecraft 26.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/KCA-1.13.12-mc26.2.jar) |
+| Minecraft | KCA | Download |
+| --- | --- | --- |
+| **26.2** | **1.13.13** | [Download for Minecraft 26.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.13/KCA-1.13.13-mc26.2.jar) |
+| 26.1.2 (legacy) | 1.13.12 | [Download for Minecraft 26.1.2](https://raw.githubusercontent.com/VK-Airk/Kitagwa-CA/v1.13.12/KCA-1.13.12-mc26.1.2.jar) |
+
+KCA 1.13.13 restores the pre-overlay storage behavior. The dungeon recap saves a secret count at boss entry in case the party disbands or warps before the final reply. [Minecraft 26.2 source](https://github.com/VK-Airk/Kitagwa-CA/tree/mc26.2)
 
 Close Minecraft, replace your previous KCA JAR in your Fabric profile’s mods folder, and restart. Use Fabric API for the same Minecraft version.
 
